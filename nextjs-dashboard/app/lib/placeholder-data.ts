@@ -1,4 +1,8 @@
 // This file contains placeholder data that you'll be replacing with real data in the Data Fetching chapter:
+
+import { number } from "zod";
+import { Product, Trailer } from './definitions';
+
 // https://nextjs.org/learn/dashboard-app/fetching-data
 const users = [
   {
@@ -6,6 +10,77 @@ const users = [
     name: 'User',
     email: 'user@nextmail.com',
     password: '123456',
+  },
+];
+
+// Base products (non-trailer products)
+const products: Product[] = [
+  {
+    id: 't1',
+    name: 'Utility Trailer 4x8',
+    description: 'Perfect for small hauling jobs',
+    price: 149999,
+    category: 'trailer',
+    inventory: 3,
+    image_url: '/trailers/utility-4x8.png',
+  },
+  {
+    id: 't2',
+    name: 'Enclosed Trailer 6x12',
+    description: 'Weather-protected cargo space',
+    price: 299999,
+    category: 'trailer',
+    inventory: 2,
+    image_url: '/trailers/enclosed-6x12.png',
+  },
+  {
+    id: 't3',
+    name: 'Car Hauler 18ft',
+    description: 'Professional auto transport trailer',
+    price: 499999,
+    category: 'trailer',
+    inventory: 2,
+    image_url: '/trailers/car-hauler-18.png',
+  },
+];
+
+// Trailer products
+const trailers: Trailer[] = [
+  {
+    id: 't1',
+    name: 'Utility Trailer 4x8',
+    description: 'Perfect for small hauling jobs',
+    price: 149999,
+    category: 'trailer',
+    inventory: 3,
+    image_url: '/trailers/utility-4x8.png',
+    size: '4x8',
+    capacity: '1000',
+    daily_rate: 2500,
+  },
+  {
+    id: 't2',
+    name: 'Enclosed Trailer 6x12',
+    description: 'Weather-protected cargo space',
+    price: 299999,
+    category: 'trailer',
+    inventory: 2,
+    image_url: '/trailers/enclosed-6x12.png',
+    size: '6x12',
+    capacity: '2500',
+    daily_rate: 5500,
+  },
+  {
+    id: 't3',
+    name: 'Car Hauler 18ft',
+    description: 'Professional auto transport trailer',
+    price: 499999,
+    category: 'trailer',
+    inventory: 2,
+    image_url: '/trailers/car-hauler-18.png',
+    size: '18ft',
+    capacity: '7000',
+    daily_rate: 8500,
   },
 ];
 
@@ -130,18 +205,18 @@ const invoices = [
 ];
 
 const revenue = [
-  { month: 'Jan', revenue: 2000 },
-  { month: 'Feb', revenue: 1800 },
-  { month: 'Mar', revenue: 2200 },
-  { month: 'Apr', revenue: 2500 },
-  { month: 'May', revenue: 2300 },
-  { month: 'Jun', revenue: 3200 },
-  { month: 'Jul', revenue: 3500 },
-  { month: 'Aug', revenue: 3700 },
-  { month: 'Sep', revenue: 2500 },
-  { month: 'Oct', revenue: 2800 },
-  { month: 'Nov', revenue: 3000 },
-  { month: 'Dec', revenue: 4800 },
+  { month: 'Jan', revenue: 200000 }, // Store in cents
+  { month: 'Feb', revenue: 180000 },
+  { month: 'Mar', revenue: 220000 },
+  { month: 'Apr', revenue: 250000 },
+  { month: 'May', revenue: 230000 },
+  { month: 'Jun', revenue: 320000 },
+  { month: 'Jul', revenue: 350000 },
+  { month: 'Aug', revenue: 370000 },
+  { month: 'Sep', revenue: 250000 },
+  { month: 'Oct', revenue: 280000 },
+  { month: 'Nov', revenue: 300000 },
+  { month: 'Dec', revenue: 480000 },
 ];
 
-export { users, customers, invoices, revenue };
+export { users, customers, products, trailers, invoices, revenue };

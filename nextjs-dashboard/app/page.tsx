@@ -1,57 +1,254 @@
-import AcmeLogo from '@/app/ui/acme-logo';
-import styles from '@/app/ui/home.module.css';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+'use client'
+
 import Link from 'next/link';
 import { lusitana } from '@/app/ui/fonts';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { useAuth } from "@clerk/nextjs"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import dynamic from 'next/dynamic'
+import { getBrandConfig } from '@/app/lib/brand/service'
 
-
+// Dynamically import react-confetti to avoid SSR issues
+const Confetti = dynamic(() => import('react-confetti'), {
+  ssr: false,
+})
 
 export default function Page() {
+  const { isSignedIn, isLoaded } = useAuth()
+  const router = useRouter()
+  const [showConfetti, setShowConfetti] = useState(true)
+  const [config, setConfig] = useState<any>(null)
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  })
+
+  useEffect(() => {
+    async function loadConfig() {
+      const brandConfig = await getBrandConfig()
+      setConfig(brandConfig)
+    }
+    loadConfig()
+  }, [])
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard')
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // Hide confetti after 2 seconds
+    const timer = setTimeout(() => {
+      setShowConfetti(false)
+    }, 2000)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      clearTimeout(timer)
+    }
+  }, [])
+
+  if (!config) return null // Wait for config to load
+
   return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-        { <AcmeLogo /> }
-      </div>
-      
-      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
-        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
-        <div className={styles.shape}/> <p
-      className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}
-    >
-            <strong>Welcome to Acme.</strong> This is the example for the{' '}
-            <a href="https://nextjs.org/learn/" className="text-blue-500">
-              Next.js Learn Course
-            </a>
-            , brought to you by Vercel.
+    <main className="flex min-h-screen flex-col">
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          numberOfPieces={200}
+          recycle={false}
+          colors={[config.colors.primary, config.colors.secondary, config.colors.accent]}
+        />
+      )}
+
+      {/* Hero Section */}
+      <div className="relative h-[600px] flex items-center justify-center bg-[#FF6B6B]/10">
+        <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
+          <h1 className={`${lusitana.className} text-4xl sm:text-6xl font-bold text-[#2C363F] mb-6`}>
+            {config.brand.name}
+          </h1>
+          <p className="text-xl sm:text-2xl text-[#2C363F] mb-8">
+            {config.brand.slogan}
           </p>
-          <Link
-            href="/login"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <SignedIn>
+              <Button
+                asChild
+                className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
+              >
+                <Link href="/dashboard">Browse Rentals</Link>
+              </Button>
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg">
+                  Browse Rentals
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <Button
+              asChild
+              variant="outline"
+              className="bg-white hover:bg-gray-50 text-[#2C363F] px-8 py-3 rounded-lg text-lg"
+            >
+              <Link href="/contact">Contact Us</Link>
+            </Button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" className="bg-white hover:bg-gray-50">
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard">
+                  <Button variant="outline" className="bg-white hover:bg-gray-50">
+                    Dashboard
+                  </Button>
+                </Link>
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </SignedIn>
+          </div>
         </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-      {/* Add Hero Images Here */}
-      <Image
-        src="/hero-desktop.png"
-        width={1000}
-        height={760}
-        className="hidden md:block"
-        alt="Screenshots of the dashboard project showing desktop version"
-      />
-      <Image
-        src="/hero-mobile.png"
-        width={560}
-        height={620}
-        className="block md:hidden"
-        alt="Screenshots of the dashboard project showing mobile version"
-      />
-    </div>
-
-
       </div>
+
+      {/* Promo Image Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="relative w-64 h-64 mx-auto mb-8 rounded-full overflow-hidden border-4 border-[#FF6B6B]">
+            <Image
+              src="/images/marketing/amanda-promo.jpg"
+              alt="Amanda's Party & Event Rentals Team"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+          <p className={`${lusitana.className} text-2xl text-[#2C363F] mb-4`}>
+            Family-Owned & Operated
+          </p>
+          <p className="text-lg text-[#2C363F] opacity-80">
+            Creating memorable events with a personal touch
+          </p>
+        </div>
+      </section>
+      
+      {/* Categories Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <h2 className={`${lusitana.className} text-3xl font-bold text-center mb-12 text-[#2C363F]`}>
+          Our Rental Categories
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trailers</CardTitle>
+              <CardDescription>Various sizes for your transportation needs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-48 w-full">
+                <Image
+                  src="/images/product-imgs/trailers/small-trailer.png"
+                  alt="Rental trailers"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tables</CardTitle>
+              <CardDescription>6ft tables perfect for any event</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-48 w-full">
+                <Image
+                  src="/images/product-imgs/table.jpg"
+                  alt="Rental tables"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Chairs</CardTitle>
+              <CardDescription>Comfortable seating options</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-48 w-full">
+                <Image
+                  src="/images/product-imgs/chair.jpg"
+                  alt="Rental chairs"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Party Supplies</CardTitle>
+              <CardDescription>High-quality balloons and decorations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-48 w-full">
+                <Image
+                  src="/images/product-imgs/ballons.jpg"
+                  alt="Party supplies"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#4ECDC4]/10">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className={`${lusitana.className} text-3xl font-bold mb-6 text-[#2C363F]`}>
+            Ready to Make Your Event Special?
+          </h2>
+          <p className="text-lg mb-8 text-[#2C363F]">
+            Contact us today at {config.brand.phone.primary} or visit our showroom
+          </p>
+          <Button
+            asChild
+            className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
+          >
+            <Link href="/contact">Get in Touch</Link>
+          </Button>
+        </div>
+      </section>
     </main>
   );
 }

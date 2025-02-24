@@ -9,6 +9,24 @@ export type User = {
   password: string;
 };
 
+// Base Product type
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  inventory: number;
+  image_url: string;
+};
+
+// Trailer extends Product with additional properties
+export type Trailer = Product & {
+  size: string;
+  capacity: string;
+  daily_rate: number;  // in cents
+};
+
 export type Customer = {
   id: string;
   name: string;

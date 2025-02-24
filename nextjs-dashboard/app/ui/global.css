@@ -16,3 +16,127 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+
+
+
+
+
+
+
+
+:root {
+  /* Original Tailwind colors */
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+  
+  /* Brand colors */
+  --brand-primary: #FF6B6B;
+  --brand-secondary: #4ECDC4;
+  --brand-accent: #FFE66D;
+  --brand-text: #2C363F;
+  --brand-background: #FFFFFF;
+  --brand-muted: #F7F7F7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+    
+    /* Dark mode brand colors */
+    --brand-primary: #FF6B6B;
+    --brand-secondary: #4ECDC4;
+    --brand-accent: #FFE66D;
+    --brand-text: #FFFFFF;
+    --brand-background: #2C363F;
+    --brand-muted: #1E262E;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Brand color utility classes */
+.brand-primary {
+  color: var(--brand-primary);
+}
+
+.bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+
+.brand-secondary {
+  color: var(--brand-secondary);
+}
+
+.bg-brand-secondary {
+  background-color: var(--brand-secondary);
+}
+
+.brand-accent {
+  color: var(--brand-accent);
+}
+
+.bg-brand-accent {
+  background-color: var(--brand-accent);
+}
+
+.brand-muted {
+  color: var(--brand-muted);
+}
+
+.bg-brand-muted {
+  background-color: var(--brand-muted);
+}
+
+
+
+@layer base {}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
