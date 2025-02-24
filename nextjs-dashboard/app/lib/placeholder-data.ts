@@ -219,4 +219,37 @@ const revenue = [
   { month: 'Dec', revenue: 480000 },
 ];
 
-export { users, customers, products, trailers, invoices, revenue };
+const bookings = [
+  {
+    id: 'book_1',
+    event_id: 'evt_balloon',
+    date: new Date('2025-03-15'),
+    customer_name: 'John Smith',
+    customer_email: 'john@example.com',
+    customer_phone: '555-0123',
+    created_at: new Date('2025-02-24'),
+    status: 'confirmed'
+  },
+  {
+    id: 'book_2',
+    event_id: 'evt_tent',
+    date: new Date('2025-03-20'),
+    customer_name: 'Sarah Johnson',
+    customer_email: 'sarah@example.com',
+    customer_phone: '555-0124',
+    created_at: new Date('2025-02-24'),
+    status: 'pending'
+  },
+  {
+    id: 'book_3',
+    event_id: 'evt_bar_min',
+    date: new Date('2025-04-01'),
+    customer_name: 'Mike Wilson',
+    customer_email: 'mike@example.com',
+    customer_phone: '555-0125',
+    created_at: new Date('2025-02-24'),
+    status: 'confirmed'
+  }
+];
+
+export { users, customers, products, trailers, invoices, revenue, bookings };

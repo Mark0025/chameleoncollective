@@ -43,11 +43,12 @@ export async function createBooking(data: BookingData) {
       INSERT INTO bookings (
         id,
         event_id,
-        booking_date,
+        date,
         customer_name,
         customer_email,
         customer_phone,
-        created_at
+        created_at,
+        status
       ) VALUES (
         ${bookingId},
         ${data.eventId},
@@ -55,7 +56,8 @@ export async function createBooking(data: BookingData) {
         ${data.name},
         ${data.email},
         ${data.phone},
-        NOW()
+        NOW(),
+        'pending'
       )
     `
 

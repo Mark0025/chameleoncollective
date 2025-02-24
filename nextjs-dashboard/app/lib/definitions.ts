@@ -104,3 +104,22 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+export type Booking = {
+  id: string;
+  event_id: string;
+  date: Date;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  created_at: Date;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+};
+
+export type BookingForm = {
+  eventId: string;
+  date: Date;
+  name: string;
+  email: string;
+  phone: string;
+};
