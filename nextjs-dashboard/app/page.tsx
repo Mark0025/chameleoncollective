@@ -17,6 +17,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from 'next/dynamic'
 import { getBrandConfig } from '@/app/lib/brand/service'
+import { BookButton } from '@/components/booking/BookButton'
 
 // Dynamically import react-confetti to avoid SSR issues
 const Confetti = dynamic(() => import('react-confetti'), {
@@ -57,10 +58,10 @@ export default function Page() {
 
     window.addEventListener('resize', handleResize)
 
-    // Hide confetti after 2 seconds
+    // Hide confetti after 4 seconds
     const timer = setTimeout(() => {
       setShowConfetti(false)
-    }, 2000)
+    }, 4000)
 
     return () => {
       window.removeEventListener('resize', handleResize)
@@ -91,46 +92,51 @@ export default function Page() {
           <p className="text-xl sm:text-2xl text-[#2C363F] mb-8">
             {config.brand.slogan}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <SignedIn>
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-row gap-4 justify-center items-center">
+              <SignedIn>
+                <Button
+                  asChild
+                  className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
+                >
+                  <Link href="/dashboard">Browse Rentals</Link>
+                </Button>
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg">
+                    Browse Rentals
+                  </Button>
+                </SignInButton>
+              </SignedOut>
               <Button
                 asChild
-                className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
+                variant="outline"
+                className="bg-white hover:bg-gray-50 text-[#2C363F] px-8 py-3 rounded-lg text-lg"
               >
-                <Link href="/dashboard">Browse Rentals</Link>
+                <Link href="/contact">Contact Us</Link>
               </Button>
-            </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg">
-                  Browse Rentals
-                </Button>
-              </SignInButton>
-            </SignedOut>
-            <Button
-              asChild
-              variant="outline"
-              className="bg-white hover:bg-gray-50 text-[#2C363F] px-8 py-3 rounded-lg text-lg"
-            >
-              <Link href="/contact">Contact Us</Link>
-            </Button>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="outline" className="bg-white hover:bg-gray-50">
-                  Sign In
-                </Button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <div className="flex items-center gap-4">
-                <Link href="/dashboard">
+              <SignedOut>
+                <SignInButton mode="modal">
                   <Button variant="outline" className="bg-white hover:bg-gray-50">
-                    Dashboard
+                    Sign In
                   </Button>
-                </Link>
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            </SignedIn>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <div className="flex items-center gap-4">
+                  <Link href="/dashboard">
+                    <Button variant="outline" className="bg-white hover:bg-gray-50">
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </SignedIn>
+            </div>
+            <div className="flex justify-center">
+              <BookButton />
+            </div>
           </div>
         </div>
       </div>

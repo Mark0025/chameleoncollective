@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { fetchProducts, fetchCustomers, fetchCategories } from '@/app/lib/data';
 import { CreateProduct } from '@/app/ui/products/create-btn-product';
 import ProductsTable from '@/app/ui/products/products-table';
@@ -22,8 +22,7 @@ export default async function Page({
     page?: string;
   };
 }) {
-  const search = await searchParams;
-  const { query = '', category = '', page = '1' } = search;
+  const { query = '', category = '', page = '1' } = searchParams;
   const currentPage = Number(page);
 
   const [products, customers, categories] = await Promise.all([
