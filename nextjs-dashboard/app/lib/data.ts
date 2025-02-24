@@ -6,6 +6,8 @@ import {
   InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
+  Product,
+  Trailer,
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -16,8 +18,8 @@ export async function fetchRevenue() {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue[]>`SELECT * FROM revenue`;
 
@@ -85,7 +87,7 @@ export async function fetchCardData() {
   }
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -214,5 +216,144 @@ export async function fetchFilteredCustomers(query: string) {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch customer table.');
+  }
+}
+
+// Fetch all products
+export async function fetchProducts(query = '', category = '', page = 1) {
+  const ITEMS_PER_PAGE = 6;
+  const offset = (page - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const products = await sql<Product[]>`
+      SELECT *
+      FROM products
+      WHERE 
+        (name ILIKE ${`%${query}%`} OR
+        description ILIKE ${`%${query}%`})
+        ${category ? sql`AND category = ${category}` : sql``}
+      ORDER BY name ASC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+    return products;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch products.');
+  }
+}
+
+// Fetch filtered products with pagination
+export async function fetchFilteredProducts(
+  query: string,
+  currentPage: number,
+  itemsPerPage: number = 10
+) {
+  const offset = (currentPage - 1) * itemsPerPage;
+
+  try {
+    const products = await sql<Product[]>`
+      SELECT *
+      FROM products
+      WHERE
+        name ILIKE ${`%${query}%`} OR
+        description ILIKE ${`%${query}%`} OR
+        category ILIKE ${`%${query}%`}
+      ORDER BY name ASC
+      LIMIT ${itemsPerPage} OFFSET ${offset}
+    `;
+    return products;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch filtered products.');
+  }
+}
+
+// Fetch all trailers
+export async function fetchTrailers() {
+  try {
+    const data = await sql<Trailer[]>`
+      SELECT 
+        p.*,
+        t.size,
+        t.capacity,
+        t.daily_rate
+      FROM products p
+      JOIN trailers t ON p.id = t.product_id
+      WHERE p.category = 'trailer'
+      ORDER BY p.name ASC
+    `;
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch trailers.');
+  }
+}
+
+// Fetch filtered trailers
+export async function fetchFilteredTrailers(
+  query: string,
+  currentPage: number,
+  itemsPerPage: number = 10
+) {
+  const offset = (currentPage - 1) * itemsPerPage;
+
+  try {
+    const trailers = await sql<Trailer[]>`
+      SELECT 
+        p.*,
+        t.size,
+        t.capacity,
+        t.daily_rate
+      FROM products p
+      JOIN trailers t ON p.id = t.product_id
+      WHERE 
+        p.category = 'trailer' AND
+        (
+          p.name ILIKE ${`%${query}%`} OR
+          p.description ILIKE ${`%${query}%`} OR
+          t.size ILIKE ${`%${query}%`} OR
+          t.capacity ILIKE ${`%${query}%`}
+        )
+      ORDER BY p.name ASC
+      LIMIT ${itemsPerPage} OFFSET ${offset}
+    `;
+    return trailers;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch filtered trailers.');
+  }
+}
+
+// Fetch a single trailer by ID
+export async function fetchTrailerById(id: string) {
+  try {
+    const data = await sql<Trailer[]>`
+      SELECT 
+        p.*,
+        t.size,
+        t.capacity,
+        t.daily_rate
+      FROM products p
+      JOIN trailers t ON p.id = t.product_id
+      WHERE p.id = ${id} AND p.category = 'trailer'
+    `;
+    return data[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch trailer.');
+  }
+}
+
+export async function fetchCategories() {
+  try {
+    const categories = await sql`
+      SELECT DISTINCT category 
+      FROM products 
+      ORDER BY category
+    `;
+    return categories.map(row => row.category);
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch categories.');
   }
 }
