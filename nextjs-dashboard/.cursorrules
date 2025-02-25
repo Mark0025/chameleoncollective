@@ -1,0 +1,148 @@
+# Cursor Rules for Agent Collaboration
+# Version: 1.0.0
+# Last Updated: 2025-02-25
+
+[agent.collaboration]
+# Rules for how different agents (Alex and John) work together
+agent_types = ["alex", "john"]
+versioning_pattern = "agent(X.YY) - YYYY-MM-DD - HH:MM"
+handoff_required = true
+
+[agent.alex]
+# Rules specific to Alex (Cline) agents
+type = "implementation"
+version_file = "_DEV_MAN/agnet-history/alex.md"
+responsibilities = [
+  "Read and understand _DEV_MAN folder contents",
+  "Follow project structure and best practices",
+  "Maintain test organization and implementation",
+  "Document changes in whats_working.md",
+  "Create task-specific documentation"
+]
+
+[agent.john]
+# Rules specific to John (Cursor) agents
+type = "composition"
+ide = "cursor"
+responsibilities = [
+  "Follow cursor-specific conventions",
+  "Maintain code organization",
+  "Support Alex agents in implementation",
+  "Ensure IDE integration"
+]
+
+[workflow]
+# Workflow rules for agent collaboration
+steps = [
+  "Read _DEV_MAN folder",
+  "Check agent version",
+  "Review previous agent work",
+  "Create/update task documentation",
+  "Implement changes",
+  "Update whats_working.md",
+  "Prepare for next agent"
+]
+
+[documentation]
+# Documentation requirements for agent handoffs
+required_files = [
+  "_DEV_MAN/whats_working.md",
+  "_DEV_MAN/agnet-history/alex.md",
+  "_DEV_MAN/ai-agent-tasks/**/*.md"
+]
+task_template = """
+# Task: {task_name}
+Timestamp: {timestamp}
+Agent Version: {agent_version}
+
+## Current Status
+{status}
+
+## Changes Made
+{changes}
+
+## Next Steps
+{next_steps}
+"""
+
+[version_control]
+# Version control practices for agents
+branch_pattern = "feature/{task_name}_{timestamp}"
+commit_template = """
+[{agent_type} {version}] {description}
+
+Task: {task_name}
+Status: {status}
+Next: {next_steps}
+"""
+
+[best_practices]
+# Best practices for agent collaboration
+rules = [
+  "Always read _DEV_MAN before starting",
+  "Version yourself properly",
+  "Don't overwrite other agents' work",
+  "Document all changes",
+  "Use mermaid diagrams for clarity",
+  "Include confidence scores",
+  "Maintain task history"
+]
+
+[handoff]
+# Rules for agent handoffs
+required_info = [
+  "Current agent version",
+  "Task status",
+  "Changes made",
+  "Next steps",
+  "Known issues",
+  "Confidence score"
+]
+format = """
+Agent: {agent_type} {version}
+Task: {task_name}
+Status: {status}
+Changes: {changes}
+Next: {next_steps}
+Issues: {issues}
+Confidence: {score}%
+"""
+
+[project_structure]
+# Project structure rules
+test_organization = [
+  "Unit tests in __tests__ directories",
+  "Integration tests in tests/integration",
+  "E2E tests in tests/e2e",
+  "Test utils in tests/setup"
+]
+documentation_structure = [
+  "_DEV_MAN/readme.md - Framework overview",
+  "_DEV_MAN/whats_working.md - Current status",
+  "_DEV_MAN/agnet-history/ - Agent versions",
+  "_DEV_MAN/ai-agent-tasks/ - Task tracking"
+]
+
+[confidence_scoring]
+# Rules for confidence scoring
+scale = "0-100"
+categories = [
+  "Code understanding",
+  "Implementation confidence",
+  "Test coverage",
+  "Documentation quality"
+]
+minimum_required = 75
+
+[mermaid_diagrams]
+# Rules for using mermaid diagrams
+required = true
+purposes = [
+  "Workflow visualization",
+  "Architecture documentation",
+  "Test organization",
+  "Agent collaboration"
+]
+style = """
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '16px'}}}%%
+"""

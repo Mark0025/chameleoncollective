@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Drop and recreate tables
-    await sql`DROP TABLE IF EXISTS bookings, products, users;`;
+    // Drop and recreate tables with CASCADE
+    await sql`DROP TABLE IF EXISTS bookings, products, users, trailers CASCADE;`;
     
     await sql`
       CREATE TABLE products (
