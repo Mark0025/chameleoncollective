@@ -99,15 +99,16 @@ export default function Page() {
                   asChild
                   className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
                 >
-                  <Link href="/dashboard">Browse Rentals</Link>
+                  <Link href="/dashboard">Dashboard</Link>
                 </Button>
               </SignedIn>
               <SignedOut>
-                <SignInButton mode="modal">
-                  <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg">
-                    Browse Rentals
-                  </Button>
-                </SignInButton>
+                <Button
+                  asChild
+                  className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90 text-white px-8 py-3 rounded-lg text-lg"
+                >
+                  <Link href="/rentals">Browse Rentals</Link>
+                </Button>
               </SignedOut>
               <Button
                 asChild

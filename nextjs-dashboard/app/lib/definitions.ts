@@ -93,11 +93,6 @@ export type FormattedCustomersTable = {
   total_paid: string;
 };
 
-export type CustomerField = {
-  id: string;
-  name: string;
-};
-
 export type InvoiceForm = {
   id: string;
   customer_id: string;
@@ -122,4 +117,43 @@ export type BookingForm = {
   name: string;
   email: string;
   phone: string;
+};
+
+export type Event = {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  date?: Date;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  createdAt?: Date;
+  status?: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  userId?: string;
+};
+
+export type EventResponse = {
+  events: Event[];
+  error: string | null;
+};
+
+export type ProductForm = {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  image_url?: string;
+};
+
+export type TrailerField = {
+  id: string;
+  name: string;
+};
+
+export type CustomerField = {
+  id: string;
+  name: string;
 };

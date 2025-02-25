@@ -7,39 +7,39 @@ import { Button } from "@/components/ui/button"
 import { useUser } from "@clerk/nextjs"
 import { useEffect } from "react"
 import Link from 'next/link'
-import { CalendarIcon, ListIcon, Plus } from 'lucide-react'
+import { CalendarIcon, ListIcon } from 'lucide-react'
 import type { UserMetadata } from '@/types/user'
 
 // Sample events data - this would come from your database
-const SAMPLE_EVENTS = [
+const MARK_EVENTS = [
   {
     id: 1,
-    title: "Wedding Reception",
+    title: "Birthday Party",
     date: new Date(2024, 1, 28),
-    type: "wedding",
+    type: "birthday",
     status: "confirmed",
-    items: ["Tables", "Chairs", "Arch"]
+    items: ["Tables (5)", "Chairs (40)", "Balloon Arch"]
   },
   {
     id: 2,
-    title: "Corporate Meeting",
-    date: new Date(2024, 2, 5),
-    type: "corporate",
+    title: "Family Reunion",
+    date: new Date(2024, 2, 15),
+    type: "other",
     status: "pending",
-    items: ["Projector", "Tables", "Chairs"]
+    items: ["Tables (8)", "Chairs (64)", "Tent"]
   }
 ]
 
 export default function EventsPage() {
   const { user } = useUser()
-  const [isAdmin, setIsAdmin] = useState(false)
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [date, setDate] = useState<Date | undefined>(new Date())
+  const [events, setEvents] = useState<any[]>([])
 
   useEffect(() => {
-    if (user?.publicMetadata) {
-      const metadata = user.publicMetadata as unknown as UserMetadata
-      setIsAdmin(metadata.role === 'admin')
+    // In a real app, this would be an API call filtered by user ID
+    if (user?.emailAddresses[0]?.emailAddress === 'mark.carpenter@example.com') {
+      setEvents(MARK_EVENTS)
     }
   }, [user])
 
@@ -47,9 +47,9 @@ export default function EventsPage() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-[#2C363F]">Events</h1>
+          <h1 className="text-4xl font-bold text-[#2C363F]">My Events</h1>
           <p className="text-[#2C363F]/60">
-            {isAdmin ? 'Manage all scheduled events' : 'View your scheduled events'}
+            View your scheduled events and reservations
           </p>
         </div>
         <div className="flex gap-4">
@@ -73,8 +73,7 @@ export default function EventsPage() {
           </div>
           <Button asChild className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90">
             <Link href="/booking">
-              <Plus className="w-4 h-4 mr-2" />
-              Book Event
+              Book New Event
             </Link>
           </Button>
         </div>
@@ -91,9 +90,8 @@ export default function EventsPage() {
               selected={date}
               onSelect={setDate}
               className="rounded-md border"
-              // This would be replaced with actual event dates
               modifiers={{
-                booked: SAMPLE_EVENTS.map(event => event.date)
+                booked: events.map(event => event.date)
               }}
               modifiersStyles={{
                 booked: {
@@ -106,46 +104,57 @@ export default function EventsPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {SAMPLE_EVENTS.map(event => (
-            <Card key={event.id}>
-              <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  <span>{event.title}</span>
-                  <span className={`text-sm px-3 py-1 rounded-full ${
-                    event.status === 'confirmed' 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {event.status}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Date</p>
-                    <p>{event.date.toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Type</p>
-                    <p className="capitalize">{event.type}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm text-gray-500">Items</p>
-                    <p>{event.items.join(", ")}</p>
-                  </div>
-                  {isAdmin && (
+          {events.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-lg text-gray-600 mb-4">
+                  You don't have any events scheduled
+                </p>
+                <Button asChild className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90">
+                  <Link href="/booking">Book Your First Event</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            events.map(event => (
+              <Card key={event.id}>
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    <span>{event.title}</span>
+                    <span className={`text-sm px-3 py-1 rounded-full ${
+                      event.status === 'confirmed' 
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {event.status}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Date</p>
+                      <p>{event.date.toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Type</p>
+                      <p className="capitalize">{event.type}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-gray-500">Items</p>
+                      <p>{event.items.join(", ")}</p>
+                    </div>
                     <div className="col-span-2 flex gap-2 mt-4">
-                      <Button variant="outline" className="flex-1">Edit Event</Button>
+                      <Button variant="outline" className="flex-1">View Details</Button>
                       <Button variant="outline" className="flex-1 text-red-600 hover:text-red-700">
                         Cancel Event
                       </Button>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       )}
     </div>

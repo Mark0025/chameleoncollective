@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { CheckCircle } from 'lucide-react'
 
 interface BookingSuccessProps {
@@ -11,29 +10,20 @@ interface BookingSuccessProps {
 }
 
 export function BookingSuccess({ bookingId, onClose }: BookingSuccessProps) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose()
-    }, 5000) // Auto close after 5 seconds
-
-    return () => clearTimeout(timer)
-  }, [onClose])
-
   return (
-    <Card className="p-6 bg-green-50 border-green-200">
-      <div className="flex flex-col items-center text-center space-y-4">
-        <CheckCircle className="w-12 h-12 text-green-500" />
-        <div>
-          <h3 className="text-xl font-semibold text-green-800">Booking Confirmed!</h3>
-          <p className="text-green-600 mt-1">Your booking has been successfully created.</p>
-          <p className="text-sm text-green-700 mt-2">Booking ID: {bookingId}</p>
-        </div>
-        <Button 
-          onClick={onClose}
-          variant="outline"
-          className="mt-4"
-        >
-          Close
+    <Card className="p-8 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <CheckCircle className="w-16 h-16 text-green-500" />
+        <h2 className="text-2xl font-semibold">Booking Confirmed!</h2>
+        <p className="text-gray-600">
+          Your booking has been confirmed. Your booking ID is:
+        </p>
+        <p className="font-mono text-lg bg-gray-100 p-2 rounded">{bookingId}</p>
+        <p className="text-gray-600 mt-4">
+          We will send you a confirmation email with all the details.
+        </p>
+        <Button onClick={onClose} className="mt-6">
+          Book Another Event
         </Button>
       </div>
     </Card>

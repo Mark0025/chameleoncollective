@@ -1,36 +1,47 @@
 'use client'
 
+import * as React from 'react'
 import { useState, useTransition } from 'react'
 import { createBooking } from '@/app/lib/actions/bookings'
 import { BookingSuccess } from './BookingSuccess'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { PartyPopper, Home, Beer, Wine, GlassWater } from 'lucide-react'
+import { PartyPopper, Beer, Clock } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getAvailableTimeSlots } from '@/app/lib/utils/timeSlots'
 
-interface BookingFormProps {
-  events: {
-    id: string
-    name: string
-    price: number
-    description: string
-  }[]
+interface Event {
+  id: string
+  name: string
+  price: number
+  description: string
+  category: string
+  type?: 'adult' | 'kids'
 }
 
+// Helper function to determine event type
+const getEventType = (eventId: string): 'adult' | 'kids' => {
+  return eventId.startsWith('evt_bar') || eventId.startsWith('evt_beer') ? 'adult' : 'kids'
+}
+
+interface BookingFormProps {
+  events: Event[]
+}
+
+type PartyType = 'kids' | 'adult' | null
+
 export function BookingForm({ events }: BookingFormProps) {
+  const [partyType, setPartyType] = useState<PartyType>(null)
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null)
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-
+  const [time, setTime] = useState<string>('')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [successBookingId, setSuccessBookingId] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedEvent || !date) return
+  const formAction = async (formData: FormData) => {
+    if (!selectedEvent || !date || !time) return
 
     setError(null)
     startTransition(async () => {
@@ -38,9 +49,9 @@ export function BookingForm({ events }: BookingFormProps) {
         const result = await createBooking({
           eventId: selectedEvent,
           date: date,
-          name,
-          email,
-          phone
+          name: formData.get('name') as string,
+          email: formData.get('email') as string,
+          phone: formData.get('phone') as string
         })
 
         if (!result.success) {
@@ -62,42 +73,65 @@ export function BookingForm({ events }: BookingFormProps) {
   const handleSuccessClose = () => {
     setSuccessBookingId(null)
     // Reset form
+    setPartyType(null)
     setSelectedEvent(null)
     setDate(new Date())
-    setName('')
-    setEmail('')
-    setPhone('')
-  }
-
-  if (successBookingId) {
-    return <BookingSuccess bookingId={successBookingId} onClose={handleSuccessClose} />
+    setTime('')
   }
 
   const [step, setStep] = useState(1)
-  const [isAdult, setIsAdult] = useState(false)
   const [showAgeVerification, setShowAgeVerification] = useState(false)
 
   const nextStep = () => {
-    if (selectedEvent?.startsWith('evt_bar') && !isAdult && step === 1) {
+    if (step === 1 && !partyType) return
+    if (step === 2 && !selectedEvent) return
+    if (step === 3 && (!date || !time)) return
+    
+    if (partyType === 'adult' && step === 1) {
       setShowAgeVerification(true)
       return
     }
-    if (step < 3) setStep(step + 1)
+    
+    if (step < 4) setStep(step + 1)
   }
 
   const prevStep = () => {
-    if (step > 1) setStep(step - 1)
+    if (step > 1) {
+      setStep(step - 1)
+      if (step === 2) {
+        setSelectedEvent(null)
+      } else if (step === 3) {
+        setDate(new Date())
+        setTime('')
+      }
+    }
   }
 
+  // Filter events based on party type
+  const filteredEvents = React.useMemo(() => {
+    return events.filter(event => {
+      const eventType = getEventType(event.id)
+      return partyType === eventType
+    })
+  }, [events, partyType])
+
+  // Reset selected event when party type changes
+  React.useEffect(() => {
+    setSelectedEvent(null)
+  }, [partyType])
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-      <Card className="p-8">
+    <form action={formAction} className="max-w-2xl mx-auto">
+      {successBookingId ? (
+        <BookingSuccess bookingId={successBookingId} onClose={handleSuccessClose} />
+      ) : (
+        <Card className="p-8">
         {/* Progress Steps */}
         <div className="flex justify-between mb-8">
-          {[1, 2, 3].map((number) => (
+          {[1, 2, 3, 4].map((number) => (
             <div
               key={number}
-              className={`flex items-center ${number < 3 ? 'flex-1' : ''}`}
+              className={`flex items-center ${number < 4 ? 'flex-1' : ''}`}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -108,7 +142,7 @@ export function BookingForm({ events }: BookingFormProps) {
               >
                 {number}
               </div>
-              {number < 3 && (
+              {number < 4 && (
                 <div
                   className={`flex-1 h-1 mx-4 ${
                     step > number ? 'bg-[#235082]' : 'bg-gray-200'
@@ -133,7 +167,7 @@ export function BookingForm({ events }: BookingFormProps) {
                   variant="outline"
                   onClick={() => {
                     setShowAgeVerification(false)
-                    setSelectedEvent(null)
+                    setPartyType(null)
                   }}
                 >
                   Cancel
@@ -141,7 +175,6 @@ export function BookingForm({ events }: BookingFormProps) {
                 <Button
                   className="bg-[#235082] hover:bg-[#235082]/90"
                   onClick={() => {
-                    setIsAdult(true)
                     setShowAgeVerification(false)
                     setStep(2)
                   }}
@@ -153,111 +186,146 @@ export function BookingForm({ events }: BookingFormProps) {
           </div>
         )}
 
-        {/* Step 1: Event Selection */}
+        {/* Step 1: Party Type Selection */}
         {step === 1 && (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-center mb-8">Choose Your Event</h3>
-            <div className="grid grid-cols-2 gap-6 max-h-[600px] overflow-y-auto p-2">
+            <h3 className="text-2xl font-semibold text-center mb-8">Choose Your Party Type</h3>
+            <div className="grid grid-cols-2 gap-8">
+              {/* Kids Party Card */}
               <div
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
-                  selectedEvent === 'evt_balloon'
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'hover:border-pink-300'
+                className={`p-8 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
+                  partyType === 'kids'
+                    ? 'border-[#235082] bg-[#235082]/10'
+                    : 'hover:border-[#235082]/60'
                 }`}
-                onClick={() => setSelectedEvent('evt_balloon')}
+                onClick={() => {
+                  setPartyType('kids')
+                  setSelectedEvent(null)
+                }}
               >
                 <div className="flex flex-col items-center text-center">
-                  <PartyPopper className="w-16 h-16 text-pink-500 mb-4" />
-                  <h4 className="text-xl font-semibold text-pink-600">Balloon Party</h4>
-                  <p className="text-sm text-gray-600 mt-2">Setting up balloon directions</p>
-                  <p className="text-lg font-bold text-pink-600 mt-4">${(150).toLocaleString()}</p>
+                  <PartyPopper className="w-20 h-20 text-[#235082] mb-4" />
+                  <h4 className="text-2xl font-semibold text-[#235082]">Kids Parties</h4>
+                  <p className="text-sm text-gray-600 mt-4">
+                    Perfect for birthdays, celebrations, and special occasions
+                  </p>
                 </div>
               </div>
 
+              {/* Adult Party Card */}
               <div
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
-                  selectedEvent === 'evt_tent'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'hover:border-blue-300'
+                className={`p-8 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
+                  partyType === 'adult'
+                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/10'
+                    : 'hover:border-[#FF6B6B]/60'
                 }`}
-                onClick={() => setSelectedEvent('evt_tent')}
+                onClick={() => {
+                  setPartyType('adult')
+                  setSelectedEvent(null)
+                }}
               >
                 <div className="flex flex-col items-center text-center">
-                  <Home className="w-16 h-16 text-blue-500 mb-4" />
-                  <h4 className="text-xl font-semibold text-blue-600">Kids Tent Party</h4>
-                  <p className="text-sm text-gray-600 mt-2">Set up tents for your party</p>
-                  <p className="text-lg font-bold text-blue-600 mt-4">${(250).toLocaleString()}</p>
-                </div>
-              </div>
-
-              {/* Adult Party Options */}
-              <div
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
-                  selectedEvent === 'evt_bar_min'
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'hover:border-purple-300'
-                }`}
-                onClick={() => setSelectedEvent('evt_bar_min')}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <Wine className="w-16 h-16 text-purple-500 mb-4" />
-                  <h4 className="text-xl font-semibold text-purple-600">Adult Party - 2 Drink Minimum</h4>
-                  <p className="text-sm text-gray-600 mt-2">Open bar with 2 drink minimum plus tips</p>
-                  <p className="text-lg font-bold text-purple-600 mt-4">${(500).toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
-                  selectedEvent === 'evt_bar_keg'
-                    ? 'border-amber-500 bg-amber-50'
-                    : 'hover:border-amber-300'
-                }`}
-                onClick={() => setSelectedEvent('evt_bar_keg')}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <Beer className="w-16 h-16 text-amber-500 mb-4" />
-                  <h4 className="text-xl font-semibold text-amber-600">Adult Party - Keg Package</h4>
-                  <p className="text-sm text-gray-600 mt-2">Open bar with 1 keg plus paid liquor</p>
-                  <p className="text-lg font-bold text-amber-600 mt-4">${(1250).toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div
-                className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
-                  selectedEvent === 'evt_beer_barn'
-                    ? 'border-green-500 bg-green-50'
-                    : 'hover:border-green-300'
-                }`}
-                onClick={() => setSelectedEvent('evt_beer_barn')}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <GlassWater className="w-16 h-16 text-green-500 mb-4" />
-                  <h4 className="text-xl font-semibold text-green-600">Adult Party - Beer Barn</h4>
-                  <p className="text-sm text-gray-600 mt-2">Beer barn with open liquor</p>
-                  <p className="text-lg font-bold text-green-600 mt-4">${(250).toLocaleString()}</p>
+                  <Beer className="w-20 h-20 text-[#FF6B6B] mb-4" />
+                  <h4 className="text-2xl font-semibold text-[#FF6B6B]">Adult Parties</h4>
+                  <p className="text-sm text-gray-600 mt-4">
+                    21+ events with premium bar service
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Step 2: Date Selection */}
+        {/* Step 2: Package Selection */}
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-center mb-8">Select Date</h3>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-xl border mx-auto"
-              disabled={(date) => date < new Date()}
-            />
+            <h3 className="text-2xl font-semibold text-center mb-8">
+              Choose Your {partyType === 'kids' ? "Kids" : "Adult"} Package
+            </h3>
+            <div className="grid grid-cols-2 gap-6 max-h-[600px] overflow-y-auto p-2">
+              {filteredEvents.map(event => {
+                const color = partyType === 'adult' ? '[#FF6B6B]' : '[#235082]'
+                const icon = partyType === 'adult' 
+                  ? <Beer className={`w-16 h-16 text-${color} mb-4`} />
+                  : <PartyPopper className={`w-16 h-16 text-${color} mb-4`} />
+
+                return (
+                  <div
+                    key={event.id}
+                    className={`p-6 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
+                      selectedEvent === event.id
+                        ? `border-${color} bg-${color}/10`
+                        : `hover:border-${color}/60`
+                    }`}
+                    onClick={() => setSelectedEvent(event.id)}
+                  >
+                    <div className="flex flex-col items-center text-center">
+                      {icon}
+                      <h4 className={`text-xl font-semibold text-${color}`}>{event.name}</h4>
+                      <p className="text-sm text-gray-600 mt-2">{event.description}</p>
+                      <p className={`text-lg font-bold text-${color} mt-4`}>
+                        ${(event.price / 100).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
-        {/* Step 3: Contact Information */}
+        {/* Step 3: Date & Time Selection */}
         {step === 3 && (
+          <div className="space-y-8">
+            <h3 className="text-2xl font-semibold text-center mb-8">Select Date & Time</h3>
+            
+            {/* Date Selection */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium">Choose a Date</h4>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => {
+                  setDate(newDate)
+                  setTime('') // Reset time when date changes
+                }}
+                className="rounded-xl border mx-auto [&_.rdp-day_focus]:bg-[#235082] [&_.rdp-day_selected]:bg-[#235082]"
+                disabled={(date) => {
+                  const day = date.getDay()
+                  return date < new Date() || day === 0 // Disable Sundays
+                }}
+              />
+            </div>
+
+            {/* Time Selection */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Choose a Time
+              </h4>
+              <Select value={time} onValueChange={setTime}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a time slot" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableTimeSlots(date).map((slot) => (
+                    <SelectItem key={slot} value={slot}>
+                      {slot}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {date?.getDay() === 6 && (
+                <p className="text-sm text-gray-500">
+                  Saturday hours: 10:00 AM - 4:00 PM
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Contact Information */}
+        {step === 4 && (
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-center mb-8">Contact Information</h3>
             <div className="space-y-4">
@@ -265,8 +333,7 @@ export function BookingForm({ events }: BookingFormProps) {
                 <label className="block text-sm font-medium mb-1">Name</label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  name="name"
                   className="w-full p-3 border rounded-lg"
                   required
                 />
@@ -275,8 +342,7 @@ export function BookingForm({ events }: BookingFormProps) {
                 <label className="block text-sm font-medium mb-1">Email</label>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
                   className="w-full p-3 border rounded-lg"
                   required
                 />
@@ -285,8 +351,7 @@ export function BookingForm({ events }: BookingFormProps) {
                 <label className="block text-sm font-medium mb-1">Phone</label>
                 <input
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  name="phone"
                   className="w-full p-3 border rounded-lg"
                   required
                 />
@@ -300,9 +365,9 @@ export function BookingForm({ events }: BookingFormProps) {
                 <p className="text-sm text-gray-600">
                   {selectedEventDetails.name} - ${(selectedEventDetails.price / 100).toLocaleString()}
                 </p>
-                {date && (
+                {date && time && (
                   <p className="text-sm text-gray-600">
-                    Date: {date.toLocaleDateString()}
+                    Date: {date.toLocaleDateString()} at {time}
                   </p>
                 )}
               </div>
@@ -323,13 +388,14 @@ export function BookingForm({ events }: BookingFormProps) {
             </Button>
           )}
           
-          {step < 3 ? (
+          {step < 4 ? (
             <Button
               type="button"
               onClick={nextStep}
               disabled={
-                (step === 1 && !selectedEvent) ||
-                (step === 2 && !date)
+                (step === 1 && !partyType) ||
+                (step === 2 && !selectedEvent) ||
+                (step === 3 && (!date || !time))
               }
               className="bg-[#235082] hover:bg-[#235082]/90 px-6 ml-auto"
             >
@@ -338,7 +404,7 @@ export function BookingForm({ events }: BookingFormProps) {
           ) : (
             <Button
               type="submit"
-              disabled={!selectedEvent || !date || !name || !email || !phone || isPending}
+              disabled={!selectedEvent || !date || !time || isPending}
               className="bg-[#235082] hover:bg-[#235082]/90 px-6 ml-auto"
             >
               {isPending ? 'Booking...' : 'Book Now'}
@@ -349,7 +415,8 @@ export function BookingForm({ events }: BookingFormProps) {
         {error && (
           <p className="text-red-500 text-sm text-center mt-4">{error}</p>
         )}
-      </Card>
+        </Card>
+      )}
     </form>
   )
 }

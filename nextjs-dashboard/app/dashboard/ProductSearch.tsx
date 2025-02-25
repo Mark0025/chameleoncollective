@@ -39,7 +39,11 @@ const SAMPLE_PRODUCTS = {
   ],
 }
 
-export default function ProductSearch() {
+interface ProductSearchProps {
+  isAdmin: boolean;
+}
+
+export default function ProductSearch({ isAdmin }: ProductSearchProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -57,10 +61,12 @@ export default function ProductSearch() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-[#2C363F]">Products</h1>
-        <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Product
-        </Button>
+        {isAdmin && (
+          <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Product
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8">

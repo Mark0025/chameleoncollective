@@ -2,6 +2,9 @@
 
 import { sql } from '@/app/lib/db'
 import { revalidatePath } from 'next/cache'
+import { currentUser } from '@clerk/nextjs/server'
+
+import { Booking } from '@/app/lib/definitions'
 
 interface BookingData {
   eventId: string
@@ -9,12 +12,14 @@ interface BookingData {
   name: string
   email: string
   phone: string
+  status?: 'pending' | 'confirmed' | 'completed' | 'cancelled'
 }
 
 export async function createBooking(data: BookingData) {
   console.log('Creating booking with data:', data)
   try {
     const bookingId = `book_${Date.now()}`
+    const user = await currentUser()
     
     // Validate required fields
     if (!data.eventId || !data.date || !data.name || !data.email || !data.phone) {
@@ -38,6 +43,20 @@ export async function createBooking(data: BookingData) {
       return { success: false, error: 'Invalid event selected' }
     }
 
+    // Get user role if authenticated
+    let userRole = 'user'
+    if (user?.id) {
+      const userResult = await sql`
+        SELECT role FROM users WHERE clerk_id = ${user.id}
+      `
+      if (userResult.length > 0) {
+        userRole = userResult[0].role
+      }
+    }
+
+    // Set initial status based on user role
+    const status = userRole === 'admin' ? 'confirmed' : 'pending'
+
     console.log('Creating booking record...')
     const result = await sql`
       INSERT INTO bookings (
@@ -47,7 +66,7 @@ export async function createBooking(data: BookingData) {
         customer_name,
         customer_email,
         customer_phone,
-        created_at,
+        user_id,
         status
       ) VALUES (
         ${bookingId},
@@ -56,8 +75,8 @@ export async function createBooking(data: BookingData) {
         ${data.name},
         ${data.email},
         ${data.phone},
-        NOW(),
-        'pending'
+        ${user?.id || null},
+        ${status}
       )
     `
 

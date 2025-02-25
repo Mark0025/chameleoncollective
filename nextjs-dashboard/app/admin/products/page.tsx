@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,32 +13,34 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from 'next/image'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
-import type { Product } from '@/types/user'
-
-const SAMPLE_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Small Utility Trailer',
-    image: '/images/product-imgs/trailers/small-trailer.png',
-    available: true,
-    price: 45.00,
-    inventory: 3,
-    category: 'trailers'
-  },
-  {
-    id: 2,
-    name: '16ft Tandem Axle',
-    image: '/images/product-imgs/trailers/16ft-tandem-axel.png',
-    available: false,
-    price: 75.00,
-    inventory: 0,
-    category: 'trailers'
-  },
-  // Add more products...
-]
+import { useRouter } from 'next/navigation'
+import { getProducts } from './actions'
+import type { Product } from '@/types/product'
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>(SAMPLE_PRODUCTS)
+  const router = useRouter()
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const result = await getProducts()
+        if (result.error) {
+          setError(result.error)
+        } else {
+          setProducts(result.products)
+        }
+      } catch (err) {
+        setError('Failed to load products')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProducts()
+  }, [])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
@@ -48,17 +50,25 @@ export default function AdminProducts() {
     return matchesSearch && matchesCategory
   })
 
-  const updateProduct = (id: number, updates: Partial<Product>) => {
-    setProducts(products.map(product => 
-      product.id === id ? { ...product, ...updates } : product
-    ))
+  const updateProduct = async (id: number, updates: Partial<Product>) => {
+    try {
+      // TODO: Implement updateProduct server action
+      setProducts(products.map(product => 
+        product.id === id ? { ...product, ...updates } : product
+      ))
+    } catch (err) {
+      console.error('Failed to update product:', err)
+    }
   }
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-[#2C363F]">Manage Products</h1>
-        <Button className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90">
+        <Button 
+          className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90"
+          onClick={() => router.push('/admin/products/create')}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add New Product
         </Button>
@@ -87,7 +97,14 @@ export default function AdminProducts() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {loading ? (
+        <div className="text-center py-8">Loading products...</div>
+      ) : error ? (
+        <div className="text-center py-8 text-red-500">{error}</div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-8">No products found</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map(product => (
           <Card key={product.id} className="overflow-hidden border border-[#235082]/20">
             <div className="relative h-48 w-full">
@@ -146,9 +163,10 @@ export default function AdminProducts() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+        </Card>
+      ))}
+    </div>
+      )}
     </div>
   )
-} 
+}

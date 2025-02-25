@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
@@ -13,44 +13,83 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CalendarIcon, ListIcon, Search, Filter } from 'lucide-react'
-
-// Sample events data - this would come from your database
-const SAMPLE_EVENTS = [
-  {
-    id: 1,
-    title: "Wedding Reception",
-    date: new Date(2024, 1, 28),
-    type: "wedding",
-    status: "confirmed",
-    customer: "John & Sarah Smith",
-    revenue: 1250.00,
-    items: ["Tables (10)", "Chairs (100)", "Arch (1)"]
-  },
-  {
-    id: 2,
-    title: "Corporate Meeting",
-    date: new Date(2024, 2, 5),
-    type: "corporate",
-    status: "pending",
-    customer: "Tech Corp Inc.",
-    revenue: 750.00,
-    items: ["Projector (1)", "Tables (5)", "Chairs (20)"]
-  }
-]
+import { CalendarIcon, ListIcon, Search } from 'lucide-react'
+import { getEvents, updateEventStatus } from './actions'
+import { useToast } from "@/components/ui/use-toast"
+import type { Event } from '@/app/lib/definitions'
 
 export default function AdminEventsPage() {
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
-  const [date, setDate] = useState<Date | undefined>(new Date())
+  const [date, setDate] = useState<Date>(new Date())
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [events, setEvents] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
-  const filteredEvents = SAMPLE_EVENTS.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.customer.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
+  async function loadEvents() {
+    setIsLoading(true)
+    const { events, error } = await getEvents()
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive"
+      })
+    } else {
+      setEvents(events)
+    }
+    setIsLoading(false)
+  }
+
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = (event.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                         (event.customerName?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     const matchesStatus = filterStatus === 'all' || event.status === filterStatus
     return matchesSearch && matchesStatus
   })
+
+  const handleStatusUpdate = async (eventId: string, newStatus: string) => {
+    const { success, error } = await updateEventStatus(eventId, newStatus)
+    if (success) {
+      toast({
+        title: "Success",
+        description: "Event status updated successfully"
+      })
+      loadEvents() // Reload events to get latest data
+    } else {
+      toast({
+        title: "Error",
+        description: error || "Failed to update event status",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Calculate summary statistics
+  const todayEvents = events.filter(event => {
+    if (!event.date) return false
+    const eventDate = new Date(event.date)
+    const today = new Date()
+    return eventDate.toDateString() === today.toDateString()
+  })
+
+  const pendingEvents = events.filter(event => event.status === 'pending')
+  const monthlyRevenue = events
+    .filter(event => event.status === 'confirmed')
+    .reduce((total, event) => total + (event.price || 0), 0)
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="text-center">Loading events...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-10">
@@ -127,10 +166,12 @@ export default function AdminEventsPage() {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(newDate) => newDate && setDate(newDate)}
               className="rounded-md border"
               modifiers={{
-                booked: SAMPLE_EVENTS.map(event => event.date)
+                booked: events
+                  .filter(event => event.date)
+                  .map(event => new Date(event.date as Date))
               }}
               modifiersStyles={{
                 booked: {
@@ -147,42 +188,52 @@ export default function AdminEventsPage() {
             <Card key={event.id}>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>{event.title}</span>
-                  <span className={`text-sm px-3 py-1 rounded-full ${
-                    event.status === 'confirmed' 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {event.status}
-                  </span>
+                  <span>{event.name}</span>
+                  <Select
+                    value={event.status}
+                    onValueChange={(newStatus) => handleStatusUpdate(event.id, newStatus)}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Date</p>
-                    <p>{event.date.toLocaleDateString()}</p>
+                    <p>{event.date ? new Date(event.date).toLocaleDateString() : 'Not scheduled'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Customer</p>
-                    <p>{event.customer}</p>
+                    <p>{event.customerName}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Type</p>
-                    <p className="capitalize">{event.type}</p>
+                    <p className="capitalize">{event.category}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Revenue</p>
-                    <p className="text-green-600">${event.revenue.toFixed(2)}</p>
+                    <p className="text-green-600">${(event.price / 100).toFixed(2)}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-sm text-gray-500">Items</p>
-                    <p>{event.items.join(", ")}</p>
+                    <p>{event.description}</p>
                   </div>
                   <div className="col-span-2 flex gap-2 mt-4">
                     <Button variant="outline" className="flex-1">Edit Event</Button>
                     <Button variant="outline" className="flex-1">Send Reminder</Button>
-                    <Button variant="outline" className="flex-1 text-red-600 hover:text-red-700">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 text-red-600 hover:text-red-700"
+                      onClick={() => handleStatusUpdate(event.id, 'cancelled')}
+                    >
                       Cancel Event
                     </Button>
                   </div>
@@ -200,7 +251,7 @@ export default function AdminEventsPage() {
             <CardTitle className="text-lg">Today's Events</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#235082]">2</p>
+            <p className="text-3xl font-bold text-[#235082]">{todayEvents.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -208,7 +259,7 @@ export default function AdminEventsPage() {
             <CardTitle className="text-lg">Pending Confirmations</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#FF6B6B]">3</p>
+            <p className="text-3xl font-bold text-[#FF6B6B]">{pendingEvents.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -216,10 +267,10 @@ export default function AdminEventsPage() {
             <CardTitle className="text-lg">Monthly Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">$4,250.00</p>
+            <p className="text-3xl font-bold text-green-600">${monthlyRevenue.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
     </div>
   )
-} 
+}
