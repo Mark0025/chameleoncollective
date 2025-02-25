@@ -8,7 +8,8 @@ const isPublicRoute = createRouteMatcher([
   '/contact(.*)',
   '/rentals(.*)',
   '/sign-in(.*)',
-  '/sign-up(.*)'
+  '/sign-up(.*)',
+  '/seed'
 ])
 
 const isAdminRoute = createRouteMatcher(['/(auth)/admin(.*)'])

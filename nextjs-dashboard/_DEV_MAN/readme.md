@@ -1,5 +1,7 @@
 we use DEV-MAN to monitor and work with ai at a high level. 
 
+alex.md is a cline cline is alex.msd it is how we version our agents. make sure you understand this. 
+
 all every ai agent should be using this framework. 
 
 DEV_MAN 
