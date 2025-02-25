@@ -2,6 +2,7 @@ import { sql } from '@/app/lib/db';
 import { bookings, events } from '@/app/lib/placeholder-data';
 import { NextResponse } from 'next/server';
 
+
 export async function GET() {
   try {
     // Drop and recreate tables

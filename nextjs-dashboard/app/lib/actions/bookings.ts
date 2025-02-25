@@ -2,9 +2,7 @@
 
 import { sql } from '@/app/lib/db'
 import { revalidatePath } from 'next/cache'
-import { currentUser } from '@clerk/nextjs/server'
-
-import { Booking } from '@/app/lib/definitions'
+import type { Booking } from '@/app/lib/definitions'
 
 interface BookingData {
   eventId: string
@@ -19,8 +17,6 @@ export async function createBooking(data: BookingData) {
   console.log('Creating booking with data:', data)
   try {
     const bookingId = `book_${Date.now()}`
-    const user = await currentUser()
-    
     // Validate required fields
     if (!data.eventId || !data.date || !data.name || !data.email || !data.phone) {
       console.error('Missing required fields:', { 
@@ -43,19 +39,8 @@ export async function createBooking(data: BookingData) {
       return { success: false, error: 'Invalid event selected' }
     }
 
-    // Get user role if authenticated
-    let userRole = 'user'
-    if (user?.id) {
-      const userResult = await sql`
-        SELECT role FROM users WHERE clerk_id = ${user.id}
-      `
-      if (userResult.length > 0) {
-        userRole = userResult[0].role
-      }
-    }
-
-    // Set initial status based on user role
-    const status = userRole === 'admin' ? 'confirmed' : 'pending'
+    // All public bookings start as pending
+    const status = 'pending'
 
     console.log('Creating booking record...')
     const result = await sql`
@@ -75,7 +60,7 @@ export async function createBooking(data: BookingData) {
         ${data.name},
         ${data.email},
         ${data.phone},
-        ${user?.id || null},
+        null,
         ${status}
       )
     `

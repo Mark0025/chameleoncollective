@@ -1,8 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-// Define protected and public routes
+// Define route matchers for our route groups
 const isPublicRoute = createRouteMatcher([
   '/',
+  '/(public)(.*)',
   '/book(.*)',
   '/contact(.*)',
   '/rentals(.*)',
@@ -10,7 +11,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)'
 ])
 
-const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+const isAdminRoute = createRouteMatcher(['/(auth)/admin(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
   // Allow public routes
