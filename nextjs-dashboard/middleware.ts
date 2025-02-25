@@ -1,41 +1,41 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-// Public routes that don't require authentication
-const publicRoutes = ['/', '/sign-in', '/sign-up', '/rentals', '/contact']
+// Define route matchers for our route groups
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/(public)(.*)',
+  '/book(.*)',
+  '/contact(.*)',
+  '/rentals(.*)',
+  '/sign-in(.*)',
+  '/sign-up(.*)'
+])
 
-export default clerkMiddleware((auth, request) => {
-  const isPublic = publicRoutes.some(route => request.url.includes(route))
-  
+const isAdminRoute = createRouteMatcher(['/(auth)/admin(.*)'])
+
+export default clerkMiddleware(async (auth, req) => {
   // Allow public routes
-  if (isPublic) {
-    return NextResponse.next()
+  if (isPublicRoute(req)) {
+    return
   }
 
-  // Check for admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    const metadata = auth.session?.user?.publicMetadata
-    const isAdmin = metadata?.role === 'admin'
-    
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
+  // Protect admin routes with role check
+  if (isAdminRoute(req)) {
+    await auth.protect((has) => {
+      // TODO: Replace with actual admin role check once set up in Clerk
+      return has({ role: 'admin' })
+    })
   }
 
-  // For non-public routes, require authentication
-  if (!auth.session) {
-    const signInUrl = new URL('/sign-in', request.url)
-    signInUrl.searchParams.set('redirect_url', request.url)
-    return NextResponse.redirect(signInUrl)
-  }
-
-  return NextResponse.next()
+  // Protect all other routes (dashboard, etc)
+  await auth.protect()
 })
 
 export const config = {
   matcher: [
-    '/((?!.+\\.[\\w]+$|_next).*)',
-    '/',
+    // Skip Next.js internals and all static files
+    '/((?!_next|[^?]*\\.[^?]*$).*)',
+    // Always run for API routes
     '/(api|trpc)(.*)',
   ],
-} 
+}

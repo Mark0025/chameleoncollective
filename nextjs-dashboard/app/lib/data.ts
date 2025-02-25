@@ -344,6 +344,20 @@ export async function fetchTrailerById(id: string) {
   }
 }
 
+export async function fetchProductById(id: string) {
+  try {
+    const product = await sql<Product[]>`
+      SELECT *
+      FROM products
+      WHERE id = ${id}
+    `;
+    return product[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch product.');
+  }
+}
+
 export async function fetchCategories() {
   try {
     const categories = await sql`
@@ -351,7 +365,7 @@ export async function fetchCategories() {
       FROM products 
       ORDER BY category
     `;
-    return categories.map(row => row.category);
+    return categories.map((row: { category: string }) => row.category);
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch categories.');
