@@ -2,14 +2,17 @@ import { BookingForm } from '@/components/booking/BookingForm'
 import { getBrandConfig } from '@/app/lib/brand/service'
 import { sql } from '@/app/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 async function getEventProducts() {
   const events = await sql<Array<{
     id: string
     name: string
     price: number
     description: string
+    category: string
   }>>`
-    SELECT id, name, price, description
+    SELECT id, name, price, description, category
     FROM products
     WHERE category = 'events'
     ORDER BY name ASC
