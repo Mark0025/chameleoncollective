@@ -5,10 +5,9 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   experimental: { 
     serverActions: {
-      bodySizeLimit: 5 * 1024 * 1024,
-      allowedOrigins: ['*']
-    },
-    serverComponents: true
+      bodySizeLimit: '5mb',
+      allowedOrigins: ['localhost:3000', 'vercel.app']
+    }
   },
   images: {
     remotePatterns: [
