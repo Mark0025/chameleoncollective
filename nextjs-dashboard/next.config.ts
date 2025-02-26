@@ -6,9 +6,9 @@ const nextConfig = {
   experimental: {
     serverActions: {
       enabled: true
-    },
-    serverComponentsExternalPackages: ['@heroicons/react']
+    }
   },
+  serverExternalPackages: ['@heroicons/react'],
   staticPageGenerationTimeout: 120,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   images: {
