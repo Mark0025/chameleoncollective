@@ -9,6 +9,8 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'vercel.app']
     }
   },
+  staticPageGenerationTimeout: 120,
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   images: {
     remotePatterns: [
       {
