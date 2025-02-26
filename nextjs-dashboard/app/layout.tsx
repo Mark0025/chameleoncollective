@@ -9,8 +9,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    // During static build, return minimal layout
+    return (
+      <html lang="en">
+        <body className={`${inter.className} antialiased`}>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+          <Toaster />
+        </body>
+      </html>
+    );
+  }
+
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={publishableKey}>
       <html lang="en">
         <body className={`${inter.className} antialiased`}>
           <ThemeProvider>
