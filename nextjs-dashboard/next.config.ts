@@ -4,10 +4,7 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: { 
-    serverActions: {
-      bodySizeLimit: '5mb',
-      allowedOrigins: ['localhost:3000', 'vercel.app']
-    }
+    serverActions: true
   },
   staticPageGenerationTimeout: 120,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
