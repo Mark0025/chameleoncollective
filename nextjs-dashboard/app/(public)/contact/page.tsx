@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { Mail, Phone, MapPin } from 'lucide-react'
-import { getBrandConfig } from '@/app/lib/brand/service'
+import { getBrandConfig } from '@/app/lib/brand/config'
 import { useEffect } from 'react'
 
 export default function ContactPage() {

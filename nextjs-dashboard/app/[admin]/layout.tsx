@@ -1,9 +1,10 @@
 'use client'
 
-import { useAuth } from "@clerk/nextjs"
-import { useEffect } from "react"
+import { useAuth, useUser } from "@clerk/nextjs"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import SideNav from '@/components/dashboard/sidenav'
+import { checkIsAdmin } from '@/app/lib/actions'
 
 export default function AdminLayout({
   children,
@@ -11,7 +12,10 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const { isLoaded, userId } = useAuth()
+  const { user } = useUser()
   const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
     // If not authenticated, redirect to home
@@ -20,28 +24,36 @@ export default function AdminLayout({
       return
     }
 
-    // TODO: Add admin role check here
-    // For now, we'll use a placeholder check. You should implement proper role checking
+    // Check admin role using database
     const checkAdminRole = async () => {
       try {
-        // This should be replaced with your actual admin role check
-        const isAdmin = false // Replace with actual admin check
+        if (!user?.id) return
+        const isAdmin = await checkIsAdmin(user.id)
+        setIsAdmin(isAdmin)
+        
         if (!isAdmin) {
+          console.log('Not an admin, redirecting to dashboard')
           router.push('/dashboard')
         }
       } catch (error) {
         console.error('Failed to check admin role:', error)
         router.push('/dashboard')
+      } finally {
+        setIsChecking(false)
       }
     }
 
-    if (userId) {
+    if (userId && user) {
       checkAdminRole()
     }
-  }, [isLoaded, userId, router])
+  }, [isLoaded, userId, user, router])
 
-  if (!isLoaded) {
+  if (!isLoaded || isChecking) {
     return <div>Loading...</div>
+  }
+
+  if (!isAdmin) {
+    return null // Don't render anything while redirecting
   }
 
   return (
@@ -54,4 +66,4 @@ export default function AdminLayout({
       </div>
     </div>
   )
-} 
+}

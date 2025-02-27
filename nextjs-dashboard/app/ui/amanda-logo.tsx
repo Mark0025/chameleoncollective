@@ -1,6 +1,6 @@
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
-import { getBrandConfig } from '@/app/lib/brand/service';
+import { getBrandConfig } from '@/app/lib/brand/config';
 
 export default async function AmandaLogo() {
   const config = await getBrandConfig();

@@ -4,9 +4,16 @@
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
   id: string;
-  name: string;
+  clerk_id: string;
+  role: 'admin' | 'user';
+  first_name?: string;
+  last_name?: string;
   email: string;
-  password: string;
+};
+
+export type AdminCheckResponse = {
+  isAdmin: boolean;
+  error?: string;
 };
 
 // Base Product type

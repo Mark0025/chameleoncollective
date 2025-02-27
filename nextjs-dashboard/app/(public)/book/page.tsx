@@ -1,5 +1,5 @@
 import { BookingForm } from '@/components/booking/BookingForm'
-import { getBrandConfig } from '@/app/lib/brand/service'
+import { getBrandConfig } from '@/app/lib/brand/config'
 import { sql } from '@/app/lib/db'
 
 export const dynamic = 'force-dynamic'

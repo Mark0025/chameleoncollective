@@ -1,4 +1,4 @@
-import { getBrandConfig } from '@/app/lib/brand/service'
+import { getBrandConfig } from '@/app/lib/brand/config'
 import { HeroSection } from '@/components/landing/HeroSection'
 import { PromoSection } from '@/components/landing/PromoSection'
 import { CategoriesSection } from '@/components/landing/CategoriesSection'
@@ -20,6 +20,7 @@ export default function Page() {
       <HeroSection 
         brandName={config.brand.name}
         brandSlogan={config.brand.slogan}
+        colors={config.colors}
       />
       <PromoSection />
       <CategoriesSection />

@@ -9,8 +9,9 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
+import { checkIsAdmin } from '@/app/lib/actions';
 
 const baseLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
@@ -19,29 +20,31 @@ const baseLinks = [
 ];
 
 const adminLinks = [
-  { name: 'Users', href: '/admin/users', icon: UserGroupIcon },
+  { name: 'Admin Dashboard', href: '/admin/dashboard', icon: UserGroupIcon },
   { name: 'Settings', href: '/admin/settings', icon: CogIcon },
+  { name: 'Admin Check', href: '/admin/check', icon: CogIcon },
 ];
 
 export default function NavLinks() {
   const pathname = usePathname();
-  const { userId } = useAuth();
+  const { user, isLoaded } = useUser();
+  
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (userId) {
-      // Check user role
-      fetch(`/api/users/${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          setIsAdmin(data.role === 'admin');
-        })
-        .catch(console.error);
-    }
-  }, [userId]);
+    const checkAdminStatus = async () => {
+      if (user?.id) {
+        const result = await checkIsAdmin(user.id);
+        setIsAdmin(result);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user?.id]);
 
   // Combine links based on user role
   const links = [...baseLinks, ...(isAdmin ? adminLinks : [])];
+  console.log('NavLinks - Final Links:', links.map(l => l.name));
 
   return (
     <>

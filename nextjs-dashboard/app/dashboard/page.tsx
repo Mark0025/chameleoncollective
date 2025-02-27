@@ -1,62 +1,43 @@
 // This file handles /dashboard
 'use client'
 
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
 import AmandaLogo from '@/components/shared/amanda-logo'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
-import { getBrandConfig } from '@/app/lib/brand/service'
+import { getBrandConfig } from '@/app/lib/brand/config'
+import { getUserDashboardData } from '@/app/lib/actions'
 
-interface Booking {
-  id: string
-  date: string
-  status: string
-  event_name: string
-  price: number
-}
-
-interface Rental {
-  id: string
-  start_date: string
-  end_date: string
-  status: string
-  product_name: string
-  price: number
-}
+import { DashboardBooking, DashboardRental } from '@/app/lib/actions'
 
 export default function DashboardPage() {
   const { userId, isLoaded } = useAuth()
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [rentals, setRentals] = useState<Rental[]>([])
+  const { user } = useUser()
+  const [bookings, setBookings] = useState<DashboardBooking[]>([])
+  const [rentals, setRentals] = useState<DashboardRental[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const config = getBrandConfig()
 
   useEffect(() => {
-    if (userId) {
-      // Fetch user data including role
-      fetch(`/api/users/${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          setIsAdmin(data.role === 'admin')
-        })
-        .catch(console.error)
-
-      // Fetch bookings and rentals
-      fetch(`/api/users/${userId}/bookings`)
-        .then(res => res.json())
-        .then(data => {
-          setBookings(data.bookings || [])
-          setRentals(data.rentals || [])
-          setLoading(false)
-        })
-        .catch(error => {
-          console.error('Failed to fetch data:', error)
-          setLoading(false)
-        })
+    async function loadDashboardData() {
+      if (!userId) return;
+      
+      try {
+        const data = await getUserDashboardData(userId);
+        setIsAdmin(data.user?.role === 'admin');
+        setBookings(data.bookings || []);
+        setRentals(data.rentals || []);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [userId])
+
+    loadDashboardData();
+  }, [userId]);
 
   // Calculate analytics
   const currentMonth = new Date().getMonth()
@@ -81,7 +62,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#2C363F]">
-                Welcome to Your Dashboard
+                Welcome to your dashboard, {user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0] || 'Guest'}! 👋
               </h1>
               <p className="text-gray-600">
                 {isAdmin ? 'Administrator Access' : 'Customer Portal'}
@@ -187,4 +168,4 @@ export default function DashboardPage() {
       </div>
     </div>
   )
-} 
+}

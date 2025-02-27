@@ -1,20 +1,15 @@
-const brandConfig = {
-  brand: {
-    name: "Amanda's Party & Event Rentals",
-    slogan: "Making Your Events Memorable",
-    phone: { primary: "405-314-5387" }
-  },
-  colors: {
-    primary: '#235082',    // Tiger blue
-    secondary: '#FF6B6B',  // Pink
-    accent: '#4ECDC4',     // Accent blue
-    text: '#2C363F',       // Dark text
-    background: '#FFFFFF', // White
-    muted: '#F3F4F6'      // Light gray
-  }
-}
+'use server';
 
-// Static config that can be used on both client and server
-export function getBrandConfig() {
-  return brandConfig
+import { brandConfig, type BrandConfig } from './config';
+
+export type BrandColors = BrandConfig['colors'];
+
+export async function updateBrandColors(colors: BrandColors): Promise<{ success: boolean; error?: string }> {
+  try {
+    brandConfig.colors = colors;
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update brand colors:', error);
+    return { success: false, error: 'Failed to update colors' };
+  }
 }

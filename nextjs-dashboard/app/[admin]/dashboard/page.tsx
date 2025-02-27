@@ -1,27 +1,19 @@
 'use client'
 
-import { useAuth } from "@clerk/nextjs"
-import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 
 export default function AdminDashboard() {
-  const { isLoaded, userId } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    if (isLoaded && !userId) {
-      router.push('/')
-    }
-    // TODO: Add admin role check
-  }, [isLoaded, userId, router])
-
-  if (!isLoaded) {
-    return <div>Loading...</div>
-  }
+  const { user } = useUser()
+  const firstName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0] || 'Admin'
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Welcome to your dashboard, {firstName}! 👋</h1>
+        <p className="mt-2 text-gray-600">Here's an overview of your admin controls</p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* All Users Overview */}
         <div className="bg-white p-6 rounded-lg shadow">
@@ -125,4 +117,4 @@ export default function AdminDashboard() {
       </div>
     </div>
   )
-} 
+}
