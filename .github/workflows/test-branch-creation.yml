@@ -1,0 +1,66 @@
+name: Create Test Branch
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - pre-production
+
+jobs:
+  create-test-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout private repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Create test branch name
+        id: branch-name
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          echo "name=test/pr-${PR_NUMBER}-${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: Push to public repository
+        env:
+          PUBLIC_REPO: "THE-AI-REAL-ESTATE-INVESTOR/amandas-app-public"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add public repo as remote
+          git remote add public https://github.com/${PUBLIC_REPO}.git
+          
+          # Create and push test branch
+          git checkout -b ${{ steps.branch-name.outputs.name }}
+          git push public ${{ steps.branch-name.outputs.name }}
+
+      - name: Create PR in public repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLIC_REPO: "THE-AI-REAL-ESTATE-INVESTOR/amandas-app-public"
+        run: |
+          gh pr create \
+            --repo ${PUBLIC_REPO} \
+            --base pre-production \
+            --head ${{ steps.branch-name.outputs.name }} \
+            --title "test: PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}" \
+            --body "Testing changes from PR #${{ github.event.pull_request.number }} in private repository.
+
+            Original PR: ${{ github.event.pull_request.html_url }}
+            
+            This is an automated test branch. Please do not merge manually."
+
+      - name: Comment on original PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Test branch created in public repository: ${{ steps.branch-name.outputs.name }}"
