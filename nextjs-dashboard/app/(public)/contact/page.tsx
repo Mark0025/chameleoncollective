@@ -77,7 +77,7 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-[#FF6B6B]" />
                 <div>
                   <p className="font-semibold">Email</p>
-                  <p className="text-[#2C363F]/60">{config.brand.email}</p>
+                  <p className="text-[#2C363F]/60">contact@amandasrentals.com</p>
                 </div>
               </CardContent>
             </Card>
@@ -86,10 +86,9 @@ export default function ContactPage() {
               <CardContent className="flex items-center gap-4 p-6">
                 <MapPin className="h-6 w-6 text-[#FF6B6B]" />
                 <div>
-                  <p className="font-semibold">Address</p>
+                  <p className="font-semibold">Location</p>
                   <p className="text-[#2C363F]/60">
-                    {config.brand.address.street}<br />
-                    {config.brand.address.city}, {config.brand.address.state} {config.brand.address.zip}
+                    Oklahoma City, OK
                   </p>
                 </div>
               </CardContent>
@@ -99,9 +98,9 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <p className="font-semibold mb-2">Business Hours</p>
                 <div className="space-y-1 text-[#2C363F]/60">
-                  <p>Weekdays: {config.brand.hours.weekday}</p>
-                  <p>Saturday: {config.brand.hours.saturday}</p>
-                  <p>Sunday: {config.brand.hours.sunday}</p>
+                  <p>Monday - Friday: 9am - 6pm</p>
+                  <p>Saturday: 10am - 4pm</p>
+                  <p>Sunday: Closed</p>
                 </div>
               </CardContent>
             </Card>

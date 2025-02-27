@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { NavigationMenu } from '@/components/ui/navigation-menu';
 
-export default function PublicLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;

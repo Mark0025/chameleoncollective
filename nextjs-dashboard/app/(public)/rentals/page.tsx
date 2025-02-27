@@ -1,9 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs"
+import { Card } from "@/components/ui/card"
+import RentalForm from '@/components/rental/RentalForm'
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Search } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -11,112 +14,102 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Search, Filter } from 'lucide-react'
-import { useState } from 'react'
 
-const RENTAL_ITEMS = [
-  {
-    category: "Trailers",
-    items: [
-      {
-        name: "Utility Trailer",
-        description: "5x8 utility trailer, perfect for small moves",
-        price: "45/day",
-        image: "/images/product-imgs/trailers/small-trailer.png",
-        available: true
-      },
-      {
-        name: "16ft Tandem Axle",
-        description: "16ft car hauler with ramps",
-        price: "75/day",
-        image: "/images/product-imgs/trailers/16ft-tandem-axel.png",
-        available: true
-      },
-      {
-        name: "16ft Enclosed Trailer",
-        description: "16ft enclosed trailer for secure transport",
-        price: "95/day",
-        image: "/images/product-imgs/trailers/enclosed-16-ft.png",
-        available: true
-      }
-    ]
-  },
-  {
-    category: "Tables",
-    items: [
-      {
-        name: "6ft Banquet Table",
-        description: "Rectangle folding table, seats 6-8",
-        price: "12/day",
-        image: "/images/product-imgs/table.jpg",
-        available: true
-      },
-      {
-        name: "Round Table",
-        description: "60\" round table, seats 8",
-        price: "15/day",
-        image: "/images/product-imgs/table.jpg",
-        available: true
-      }
-    ]
-  },
-  {
-    category: "Chairs",
-    items: [
-      {
-        name: "Folding Chair",
-        description: "White plastic folding chair",
-        price: "2/day",
-        image: "/images/product-imgs/chair.jpg",
-        available: true
-      },
-      {
-        name: "Chiavari Chair",
-        description: "Gold chiavari chair with cushion",
-        price: "8/day",
-        image: "/images/product-imgs/chair.jpg",
-        available: true
-      }
-    ]
-  },
-  {
-    category: "Party Supplies",
-    items: [
-      {
-        name: "Balloon Arch Kit",
-        description: "100pc balloon arch with stand",
-        price: "75/event",
-        image: "/images/product-imgs/ballons.jpg",
-        available: true
-      },
-      {
-        name: "Table Linens",
-        description: "90x132 rectangle tablecloth",
-        price: "15/each",
-        image: "/images/product-imgs/ballons.jpg",
-        available: true
-      }
-    ]
-  }
-]
+// Organize products by category
+const CATEGORIES = {
+  'Trailers': [
+    {
+      id: 'rent_trailer_small',
+      name: 'Small Trailer',
+      description: 'Perfect for small moves and deliveries',
+      price: 50,
+      image_url: '/images/product-imgs/trailers/small-trailer.png',
+      category: 'Trailers'
+    },
+    {
+      id: 'rent_trailer_large',
+      name: '16ft Tandem Axle',
+      description: '16ft car hauler with ramps',
+      price: 75,
+      image_url: '/images/product-imgs/trailers/16ft-tandem-axel.png',
+      category: 'Trailers'
+    }
+  ],
+  'Tables': [
+    {
+      id: 'rent_table',
+      name: '6ft Table',
+      description: 'Sturdy table perfect for any event',
+      price: 10,
+      image_url: '/images/product-imgs/table.jpg',
+      category: 'Tables'
+    },
+    {
+      id: 'rent_round_table',
+      name: 'Round Table',
+      description: '60" round table, seats 8',
+      price: 15,
+      image_url: '/images/product-imgs/table.jpg',
+      category: 'Tables'
+    }
+  ],
+  'Chairs': [
+    {
+      id: 'rent_chair',
+      name: 'Folding Chair',
+      description: 'Comfortable seating for your guests',
+      price: 5,
+      image_url: '/images/product-imgs/chair.jpg',
+      category: 'Chairs'
+    },
+    {
+      id: 'rent_chiavari_chair',
+      name: 'Chiavari Chair',
+      description: 'Gold chiavari chair with cushion',
+      price: 8,
+      image_url: '/images/product-imgs/chair.jpg',
+      category: 'Chairs'
+    }
+  ],
+  'Party Supplies': [
+    {
+      id: 'rent_party_supplies',
+      name: 'Party Supply Package',
+      description: 'Everything you need for a great party',
+      price: 75,
+      image_url: '/images/product-imgs/ballons.jpg',
+      category: 'Party Supplies'
+    },
+    {
+      id: 'rent_balloon_arch',
+      name: 'Balloon Arch Kit',
+      description: '100pc balloon arch with stand',
+      price: 75,
+      image_url: '/images/product-imgs/ballons.jpg',
+      category: 'Party Supplies'
+    }
+  ]
+}
 
-export default function RentalsStorefront() {
+export default function RentalsPage() {
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
-  const filteredCategories = RENTAL_ITEMS.map(category => ({
-    ...category,
-    items: category.items.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(category =>
-    selectedCategory === 'all' || category.category.toLowerCase() === selectedCategory.toLowerCase()
-  )
+  // Filter products based on search query and category
+  const filteredCategories = Object.entries(CATEGORIES)
+    .map(([category, items]) => ({
+      category,
+      items: items.filter(item =>
+        (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (selectedCategory === 'all' || category === selectedCategory)
+      )
+    }))
+    .filter(category => category.items.length > 0)
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-[#2C363F] mb-4">Available Rentals</h1>
         <p className="text-lg text-[#2C363F]/60">
@@ -143,9 +136,9 @@ export default function RentalsStorefront() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            {RENTAL_ITEMS.map(category => (
-              <SelectItem key={category.category} value={category.category.toLowerCase()}>
-                {category.category}
+            {Object.keys(CATEGORIES).map(category => (
+              <SelectItem key={category} value={category}>
+                {category}
               </SelectItem>
             ))}
           </SelectContent>
@@ -154,60 +147,52 @@ export default function RentalsStorefront() {
 
       {/* Categories and Items */}
       <div className="space-y-12">
-        {filteredCategories.map((category) => (
-          category.items.length > 0 && (
-            <section key={category.category}>
-              <h2 className="text-2xl font-semibold mb-6">{category.category}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {category.items.map((item) => (
-                  <Card key={item.name} className={item.available ? "" : "opacity-60"}>
-                    <div className="relative h-48 w-full">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover rounded-t-lg"
-                      />
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="flex justify-between items-center">
-                        <span>{item.name}</span>
-                        <span className="text-lg font-normal">${item.price}</span>
-                      </CardTitle>
-                      <CardDescription>{item.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-between items-center">
-                        <span className={`text-sm ${item.available ? 'text-green-600' : 'text-red-600'}`}>
-                          {item.available ? 'Available' : 'Currently Rented'}
-                        </span>
-                        <SignedIn>
-                          <Button 
-                            className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90"
-                            disabled={!item.available}
-                          >
-                            Book Now
-                          </Button>
-                        </SignedIn>
-                        <SignedOut>
-                          <SignInButton mode="modal">
-                            <Button 
-                              className="bg-[#FF6B6B] hover:bg-[#FF6B6B]/90"
-                              disabled={!item.available}
-                            >
-                              Sign in to Book
-                            </Button>
-                          </SignInButton>
-                        </SignedOut>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </section>
-          )
+        {filteredCategories.map(({ category, items }) => (
+          <section key={category}>
+            <h2 className="text-2xl font-semibold mb-6">{category}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {items.map((product) => (
+                <Card key={product.id} className="p-4">
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
+                  <p className="text-gray-600 mb-4">{product.description}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg font-bold">${product.price}/day</p>
+                    <Button 
+                      className="bg-[#235082] hover:bg-[#235082]/90"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      Book Now
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
+
+      <Dialog 
+        open={!!selectedProduct} 
+        onOpenChange={(open) => !open && setSelectedProduct(null)}
+      >
+        <DialogContent className="max-w-lg p-0 bg-white border-none mx-auto">
+          <div className="bg-[#235082]/5 min-h-fit flex justify-center items-center">
+            {selectedProduct && (
+              <RentalForm 
+                product={selectedProduct}
+                onClose={() => setSelectedProduct(null)}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

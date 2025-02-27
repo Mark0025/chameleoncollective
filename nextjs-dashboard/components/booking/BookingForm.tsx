@@ -39,6 +39,9 @@ export function BookingForm({ events }: BookingFormProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [successBookingId, setSuccessBookingId] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [birthDate, setBirthDate] = useState<Date | null>(null)
+  const [birthDateError, setBirthDateError] = useState<string | null>(null)
 
   const formAction = async (formData: FormData) => {
     if (!selectedEvent || !date || !time) return
@@ -54,13 +57,11 @@ export function BookingForm({ events }: BookingFormProps) {
           phone: formData.get('phone') as string
         })
 
-        if (!result.success) {
+        if (result.success) {
+          setSuccessBookingId(result.bookingId || null)
+          setIsAuthenticated(result.isAuthenticated || false)
+        } else {
           setError(result.error || 'Failed to create booking')
-          return
-        }
-
-        if (result.bookingId) {
-          setSuccessBookingId(result.bookingId)
         }
       } catch (err) {
         setError('An unexpected error occurred')
@@ -120,10 +121,30 @@ export function BookingForm({ events }: BookingFormProps) {
     setSelectedEvent(null)
   }, [partyType])
 
+  const verifyAge = () => {
+    if (!birthDate) {
+      setBirthDateError('Please select your birth date')
+      return
+    }
+
+    const age = Math.floor((new Date().getTime() - birthDate.getTime()) / 31557600000)
+    if (age < 21) {
+      setBirthDateError('You must be 21 or older to book an adult party package')
+      return
+    }
+
+    setShowAgeVerification(false)
+    setStep(2)
+  }
+
   return (
     <form action={formAction} className="max-w-2xl mx-auto">
       {successBookingId ? (
-        <BookingSuccess bookingId={successBookingId} onClose={handleSuccessClose} />
+        <BookingSuccess 
+          bookingId={successBookingId} 
+          isAuthenticated={isAuthenticated}
+          onClose={handleSuccessClose} 
+        />
       ) : (
         <Card className="p-8">
         {/* Progress Steps */}
@@ -155,31 +176,46 @@ export function BookingForm({ events }: BookingFormProps) {
 
         {/* Age Verification Modal */}
         {showAgeVerification && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="p-6 max-w-md w-full mx-4">
-              <h3 className="text-xl font-semibold mb-4">Age Verification Required</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <Card className="p-8 max-w-md w-full mx-4 bg-white shadow-xl">
+              <h3 className="text-xl font-semibold mb-6">Age Verification Required</h3>
               <p className="text-gray-600 mb-6">
-                You must be 21 or older to book an adult party package. 
-                By proceeding, you confirm that you are of legal drinking age.
+                You must be 21 or older to book an adult party package.
+                Please enter your birth date to continue.
               </p>
+              
+              <div className="space-y-4 mb-6">
+                <label className="block text-sm font-medium text-gray-700">Birth Date</label>
+                <Calendar
+                  mode="single"
+                  selected={birthDate as Date}
+                  onSelect={(date: Date | undefined) => setBirthDate(date || null)}
+                  disabled={(date) => date > new Date()}
+                  className="rounded-xl border"
+                />
+              </div>
+
+              {birthDateError && (
+                <p className="text-red-500 text-sm mb-4">{birthDateError}</p>
+              )}
+
               <div className="flex justify-end space-x-4">
                 <Button
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => {
                     setShowAgeVerification(false)
                     setPartyType(null)
+                    setBirthDate(null)
+                    setBirthDateError(null)
                   }}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="bg-[#235082] hover:bg-[#235082]/90"
-                  onClick={() => {
-                    setShowAgeVerification(false)
-                    setStep(2)
-                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={verifyAge}
                 >
-                  I am 21 or older
+                  Verify Age
                 </Button>
               </div>
             </Card>
