@@ -3,11 +3,6 @@ const nextConfig = {
   output: 'standalone',
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  experimental: {
-    serverActions: {
-      enabled: true
-    }
-  },
   serverExternalPackages: ['@heroicons/react'],
   staticPageGenerationTimeout: 120,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
