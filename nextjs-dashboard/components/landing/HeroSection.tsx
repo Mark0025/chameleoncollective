@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link';
 import { lusitana } from '@/app/ui/fonts';
 import { Button } from '@/components/ui/button';
@@ -59,4 +61,4 @@ export const HeroSection = ({ brandName, brandSlogan }: HeroSectionProps) => {
       </div>
     </div>
   );
-}; 
+};
