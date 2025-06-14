@@ -1,1 +1,0 @@
-tree-c="tree -I 'node_modules|.next|coverage' -a"
