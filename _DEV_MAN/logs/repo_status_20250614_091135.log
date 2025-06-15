@@ -1,0 +1,3 @@
+_DEV_MAN/scripts/repo-status.sh: line 341: printf: - : invalid option
+printf: usage: printf [-v var] format [arguments]
+❌ Error: Command 'printf "- Total Repositories Analyzed: **%d**\n" "$repo_count" >> "$OUTPUT_FILE"' failed with exit code 2
