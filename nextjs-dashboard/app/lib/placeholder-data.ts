@@ -57,6 +57,22 @@ export const users = [
     role: 'admin',
     first_name: 'Admin',
     last_name: 'User',
-    email: 'admin@example.com'
+    email: 'admin@example.com',
+    phone: '555-0000'
+  }
+]
+
+export const signups = [
+  {
+    email: 'comingsoon1@example.com',
+    name: 'Interested User',
+    phone: '555-1111',
+    tag: 'comingSoon'
+  },
+  {
+    email: 'comingsoon2@example.com',
+    name: 'Another Interested',
+    phone: '555-2222',
+    tag: 'comingSoon'
   }
 ]

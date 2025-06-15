@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Drop and recreate tables with CASCADE
-    await sql`DROP TABLE IF EXISTS bookings, products, users, trailers CASCADE;`;
+    await sql`DROP TABLE IF EXISTS bookings, products, users, trailers, signups CASCADE;`
     
     await sql`
       CREATE TABLE products (
@@ -25,7 +25,8 @@ export async function GET() {
         role VARCHAR(50) NOT NULL DEFAULT 'user',
         first_name VARCHAR(255),
         last_name VARCHAR(255),
-        email VARCHAR(255)
+        email VARCHAR(255),
+        phone VARCHAR(255)
       );
     `;
 
@@ -44,8 +45,19 @@ export async function GET() {
       );
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS signups (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        name VARCHAR(255),
+        phone VARCHAR(255),
+        tag VARCHAR(50) DEFAULT 'comingSoon',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     // Insert seed data for users
-    const { users } = await import('@/app/lib/placeholder-data');
+    const { users, signups } = await import('@/app/lib/placeholder-data');
     for (const user of users) {
       await sql`
         INSERT INTO users (
@@ -54,17 +66,39 @@ export async function GET() {
           role,
           first_name,
           last_name,
-          email
+          email,
+          phone
         ) VALUES (
           ${user.id},
           ${user.clerk_id},
           ${user.role},
           ${user.first_name},
           ${user.last_name},
-          ${user.email}
+          ${user.email},
+          ${user.phone || null}
         )
         ON CONFLICT (clerk_id) DO NOTHING;
       `;
+    }
+
+    // Insert seed data for signups (comingSoon form)
+    if (signups) {
+      for (const signup of signups) {
+        await sql`
+          INSERT INTO signups (
+            email,
+            name,
+            phone,
+            tag
+          ) VALUES (
+            ${signup.email},
+            ${signup.name || null},
+            ${signup.phone || null},
+            ${signup.tag || 'comingSoon'}
+          )
+          ON CONFLICT (email) DO NOTHING;
+        `;
+      }
     }
 
     // Insert seed data for events
