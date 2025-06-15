@@ -1,0 +1,96 @@
+name: Process Test Results
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
+
+jobs:
+  process-results:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Download test results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            
+            const testResults = artifacts.data.artifacts.find(
+              artifact => artifact.name === "test-results"
+            );
+            
+            if (testResults) {
+              const download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: testResults.id,
+                archive_format: 'zip',
+              });
+              
+              require('fs').writeFileSync(
+                '${{github.workspace}}/test-results.zip',
+                Buffer.from(download.data)
+              );
+            }
+
+      - name: Extract PR number
+        id: pr-number
+        run: |
+          BRANCH_NAME="${{ github.event.workflow_run.head_branch }}"
+          PR_NUMBER=$(echo $BRANCH_NAME | grep -oP 'pr-\K\d+' || echo "")
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Process results and update PR
+        if: steps.pr-number.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr-number.outputs.number }}
+        run: |
+          # Unzip test results
+          unzip -o test-results.zip -d test-results
+
+          # Read test summary
+          TEST_SUMMARY=$(cat test-results/summary.txt)
+          TESTS_PASSED=$(grep -c "PASS" test-results/summary.txt || echo "0")
+          TESTS_FAILED=$(grep -c "FAIL" test-results/summary.txt || echo "0")
+
+          # Create status message
+          if [ "$TESTS_FAILED" -eq "0" ]; then
+            STATUS="✅ All tests passed ($TESTS_PASSED tests)"
+            LABEL="test-success"
+          else
+            STATUS="❌ Tests failed ($TESTS_FAILED failed, $TESTS_PASSED passed)"
+            LABEL="test-failure"
+          fi
+
+          # Update original PR
+          gh pr comment $PR_NUMBER --body "Test Results:
+          $STATUS
+
+          <details>
+          <summary>Test Summary</summary>
+
+          \`\`\`
+          $TEST_SUMMARY
+          \`\`\`
+          </details>
+          "
+
+          # Add/update label
+          gh pr edit $PR_NUMBER --add-label "$LABEL"
+
+      - name: Handle test failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr-number.outputs.number }}
+        run: |
+          gh pr comment $PR_NUMBER --body "⚠️ Error processing test results. Please check the workflow run for details."
