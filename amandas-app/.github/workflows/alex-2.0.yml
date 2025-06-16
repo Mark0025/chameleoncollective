@@ -1,0 +1,128 @@
+name: Alex 2.0 - Issue-Driven AI Agent
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  plan:
+    name: Create Implementation Plan
+    if: contains(github.event.issue.labels.*.name, 'alex-2.0')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate Plan
+        id: generate-plan
+        run: |
+          TIMESTAMP=$(date +"%Y-%m-%d_%H%M")
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          PLAN_FILE="_DEV_MAN/ai-agent-tasks/CURSOR/alex-2.0/plans/issue-${ISSUE_NUMBER}-${TIMESTAMP}.md"
+          
+          mkdir -p _DEV_MAN/ai-agent-tasks/CURSOR/alex-2.0/plans
+          
+          # Configure Git
+          git config --local user.email "mark@localhousebuyers.net"
+          git config --local user.name "mark0025"
+          
+          # Create branch for this plan
+          BRANCH_NAME="alex-2.0/plan-issue-${ISSUE_NUMBER}"
+          git checkout -b $BRANCH_NAME
+          
+          # Generate plan content
+          cat > "$PLAN_FILE" << EOL
+          # Implementation Plan for Issue #${ISSUE_NUMBER}
+          Generated: $(date)
+          
+          ## Original Issue
+          Title: ${{ github.event.issue.title }}
+          Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}
+          
+          ## Description
+          ${{ github.event.issue.body }}
+          
+          ## Analysis
+          $(find . -type f -name "*.tsx" -o -name "*.css" | grep -v "node_modules" | while read file; do
+            echo "### \`$file\`"
+            echo "\`\`\`"
+            cat "$file" | head -n 10
+            echo "...[truncated]"
+            echo "\`\`\`"
+          done)
+          
+          ## Implementation Steps
+          1. Create feature branch
+          2. Analyze affected files
+          3. Generate changes
+          4. Create PR
+          
+          ## Files to Modify
+          $(find . -type f -name "*.tsx" -o -name "*.css" | grep -v "node_modules")
+          
+          ## Next Steps
+          1. Review this plan
+          2. Approve implementation
+          3. Begin automated changes
+          EOL
+          
+          # Commit and push plan
+          git add "$PLAN_FILE"
+          git commit -m "docs(plan): Add implementation plan for issue #${ISSUE_NUMBER}"
+          git push origin $BRANCH_NAME
+          
+          # Create PR for the plan
+          gh pr create \
+            --title "Plan: Implementation for issue #${ISSUE_NUMBER}" \
+            --body "This PR contains the implementation plan for issue #${ISSUE_NUMBER}. Please review and approve to proceed with changes." \
+            --base main \
+            --head $BRANCH_NAME
+          
+          # Add comment to issue with plan link
+          gh issue comment $ISSUE_NUMBER --body "Implementation plan created in \`$PLAN_FILE\`. Please review the plan PR."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send IFTTT Notification
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: 'https://maker.ifttt.com/trigger/NTFY_LINUX/json/with/key/cb1oSAiEzFgmwWDQWHFAVdCiWJxfADQqr0kokjWCd_m'
+          method: 'POST'
+          data: |
+            {
+              "value1": "Alex 2.0 - Plan Created 📝",
+              "value2": "Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
+              "value3": "Implementation plan created. Please review the PR for approval."
+            }
+
+  implement:
+    name: Implement Changes
+    needs: plan
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/alex-2.0 implement')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Send Start Notification
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: 'https://maker.ifttt.com/trigger/NTFY_LINUX/json/with/key/cb1oSAiEzFgmwWDQWHFAVdCiWJxfADQqr0kokjWCd_m'
+          method: 'POST'
+          data: |
+            {
+              "value1": "Alex 2.0 - Starting Implementation 🚀",
+              "value2": "Issue #${{ github.event.issue.number }}",
+              "value3": "Beginning implementation of approved plan..."
+            }
