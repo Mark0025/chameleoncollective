@@ -8,7 +8,7 @@ interface SignUpProps {
     onSuccess?: () => void;
 }
 
-export default function SignUp1({ onSuccess }: SignUpProps) {
+export default function SignUp({ onSuccess }: SignUpProps) {
     const [step, setStep] = useState(0);
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -75,12 +75,12 @@ export default function SignUp1({ onSuccess }: SignUpProps) {
                 />
             </div>
 
-            
-                <div className="mb-6 flex justify-center">
-                    <span className="italic text-center" style={{ color: "#e0c97f", fontSize: "1.5rem" }}>
-                        A flexible & stylish multi-use event space, offering boutique party supplies, rentals, and services.
-                    </span>
-                </div>
+
+            <div className="mb-6 flex justify-center">
+                <span className="italic text-center" style={{ color: "#e0c97f", fontSize: "1.5rem" }}>
+                    A flexible & stylish multi-use event space, offering boutique party supplies, rentals, and services.
+                </span>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 w-full max-w-xs">
                 {step === 0 && (

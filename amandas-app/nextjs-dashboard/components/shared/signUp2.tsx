@@ -8,7 +8,7 @@ interface SignUpProps {
     onSuccess?: () => void;
 }
 
-export default function signUp2 ({ onSuccess }: SignUpProps) {
+export default function SignUp({ onSuccess }: SignUpProps) {
     const [step, setStep] = useState(0);
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -76,7 +76,7 @@ export default function signUp2 ({ onSuccess }: SignUpProps) {
             </div>
 
 
-         
+
 
             <form onSubmit={handleSubmit} className="space-y-3 w-full max-w-xs">
                 {step === 0 && (

@@ -20,37 +20,30 @@ export async function createSignup(data: {
     // Validate input
     const validatedData = SignupSchema.parse(data);
 
-    // Check if user already exists
-    const existingUser = await sql`
-      SELECT id FROM users WHERE email = ${validatedData.email}
+    // Check if signup already exists
+    const existingSignup = await sql`
+      SELECT id FROM signups WHERE email = ${validatedData.email}
     `;
 
-    if (existingUser.length > 0) {
+    if (existingSignup.length > 0) {
       return { 
         success: false, 
         error: 'Email already registered' 
       };
     }
 
-    // Split name into first and last name
-    const nameParts = validatedData.name?.split(' ') || [];
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
-
-    // Insert new user
+    // Insert new signup
     await sql`
-      INSERT INTO users (
-        email, 
-        first_name, 
-        last_name, 
+      INSERT INTO signups (
+        email,
+        name,
         phone,
-        role
+        tag
       ) VALUES (
         ${validatedData.email},
-        ${firstName},
-        ${lastName},
+        ${validatedData.name || null},
         ${validatedData.phone || null},
-        'user'
+        'comingSoon'
       )
     `;
 
