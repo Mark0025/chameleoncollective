@@ -16,7 +16,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (isLoaded && !userId) {
-      router.push('/ui')
+      router.push('/')
     }
   }, [isLoaded, userId, router])
 

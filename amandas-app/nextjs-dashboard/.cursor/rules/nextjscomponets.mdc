@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Next.js Components Rule
+
+All React components (except for page.tsx and layout.tsx) must be placed in the `/components` directory (or its subfolders) at the root of the Next.js app. Do not place component files inside the `/app` directory. This ensures clear separation of concerns and makes it easier to manage, test, and reuse components. Always import components into your `page.tsx` or `layout.tsx` files as needed.

@@ -39,12 +39,12 @@ export default function RootLayout({
           <header className="flex justify-end items-center px-4 py-2 h-12 bg-white shadow-sm">
             <SignedOut>
               <div className="flex gap-2">
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" redirectUrl="/dashboard">
                   <button className="text-sm text-[#235082] hover:text-[#235082]/80">
                     Sign In
                   </button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="modal" redirectUrl="/dashboard">
                   <button className="text-sm bg-[#235082] text-white px-3 py-1 rounded-md hover:bg-[#235082]/90">
                     Sign Up
                   </button>

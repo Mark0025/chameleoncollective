@@ -1,51 +1,28 @@
-'use client';
-
 import Link from 'next/link';
 import NavLinks from '@/components/dashboard/nav-links';
 import AmandaLogo from '@/components/shared/amanda-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
-import { SignOutButton, useUser } from '@clerk/nextjs';
-import { getBrandConfig } from '@/app/lib/brand/config';
 
 export default function SideNav() {
-  const config = getBrandConfig();
-  const { user, isLoaded } = useUser();
-  
-  // Debug logging for parent component
-  console.log('SideNav - Debug Start ----------------');
-  console.log('SideNav - User Loaded:', isLoaded);
-  console.log('SideNav - User ID:', user?.id);
-  console.log('SideNav - Metadata:', JSON.stringify(user?.publicMetadata, null, 2));
-  console.log('SideNav - Debug End ------------------');
-
   return (
-    <div className="flex h-full flex-col bg-gray-900">
+    <div className="flex h-full flex-col px-3 py-4 md:px-2">
       <Link
-        className="flex h-20 shrink-0 items-center p-4 md:h-40"
+        className="mb-2 flex h-20 items-end justify-start rounded-md bg-blue-600 p-4 md:h-40"
         href="/"
       >
-        <div className="w-full text-white">
-          <div className="w-32 md:w-40">
-            <AmandaLogo />
-          </div>
-          <h1 className="mt-2 text-sm md:text-base font-medium">
-            {config.brand.name} 🎈 🍻
-          </h1>
-          <p className="mt-1 text-xs text-gray-300">
-            {config.brand.slogan}
-          </p>
+        <div className="w-32 text-white md:w-40">
+          <AmandaLogo />
         </div>
       </Link>
-      <div className="flex-grow flex flex-col justify-between px-3 py-4">
-        <div className="space-y-1">
-          <NavLinks />
-        </div>
-        <SignOutButton>
-          <button className="flex w-full items-center gap-2 rounded-md p-3 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white">
+      <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
+        <NavLinks />
+        <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
+        <form>
+          <button className="flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">
             <PowerIcon className="w-6" />
             <div className="hidden md:block">Sign Out</div>
           </button>
-        </SignOutButton>
+        </form>
       </div>
     </div>
   );
