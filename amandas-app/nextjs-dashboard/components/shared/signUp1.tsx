@@ -62,15 +62,15 @@ export default function SignUp({ onSuccess }: SignUpProps) {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen w-full gap-6 p-2">
-            <h1 className="text-center font-bold italic" style={{ color: "#e0c97f", fontSize: "2rem", lineHeight: 1.1 }}>
+            <h1 className="text-center font-bold italic" style={{ color: "#e0c97f", fontSize: "4rem", lineHeight: 1.1 }}>
                 Coming Soon
             </h1>
             <div className="flex justify-center">
                 <Image
                     src="/images/logo/chameleonLogo.PNG"
                     alt="Chameleon Collective Logo"
-                    width={300}
-                    height={150}
+                    width={500}
+                    height={200}
                     className="object-contain"
                 />
             </div>
