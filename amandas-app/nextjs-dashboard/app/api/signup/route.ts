@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSignup } from '@/app/lib/actions';
+import { createSignup } from '@/app/lib/actions/signup';
 
 export async function POST(req: NextRequest) {
   try {
