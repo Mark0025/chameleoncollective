@@ -1,6 +1,25 @@
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function Page() {
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    // TODO: Add your email signup logic here
+    // For now, just simulate a submission
+    setTimeout(() => {
+      setSubmitted(true)
+      setLoading(false)
+    }, 1000)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full text-center space-y-8">
@@ -38,6 +57,44 @@ export default function Page() {
             <p className="text-gray-600">
               We're buzzing with excitement to bring you the sweetest party supplies in Oklahoma
             </p>
+
+            {/* Email Signup Form */}
+            {!submitted ? (
+              <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email 🍯"
+                    required
+                    className="flex-1 px-4 py-3 rounded-full border-2 border-amber-300 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 transition"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {loading ? 'Joining...' : 'Join the Buzz! 🐝'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 text-center">
+                  Be the first to know when we launch!
+                </p>
+              </form>
+            ) : (
+              <div className="text-center space-y-3">
+                <p className="text-2xl font-bold text-green-600">🎉 Welcome to the Hive!</p>
+                <p className="text-gray-600">We'll buzz you when we launch!</p>
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 w-full max-w-md mx-auto">
+              <div className="flex-1 h-px bg-amber-200"></div>
+              <span className="text-amber-600 text-sm">or</span>
+              <div className="flex-1 h-px bg-amber-200"></div>
+            </div>
 
             {/* CTA Button */}
             <Link
