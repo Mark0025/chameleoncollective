@@ -12,12 +12,23 @@ export default function Page() {
     e.preventDefault()
     setLoading(true)
 
-    // TODO: Add your email signup logic here
-    // For now, just simulate a submission
-    setTimeout(() => {
-      setSubmitted(true)
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      if (response.ok) {
+        setSubmitted(true)
+      } else {
+        alert('Failed to sign up. Please try again.')
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -64,18 +75,20 @@ export default function Page() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
+                    id="email"
+                    name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email 🍯"
+                    placeholder="Enter your email"
                     required
-                    className="flex-1 px-4 py-3 rounded-full border-2 border-amber-300 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 transition"
+                    className="flex-1 px-4 py-3 rounded-full bg-gray-800 text-white border-2 border-gray-600 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 transition placeholder:text-gray-400"
                   />
                   <button
                     type="submit"
                     disabled={loading}
                     className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    {loading ? 'Joining...' : 'Join the Buzz! 🐝'}
+                    {loading ? 'Submitting...' : 'Notify Me'}
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 text-center">
