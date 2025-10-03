@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import NavLinks from '@/components/dashboard/nav-links';
-import AmandaLogo from '@/components/shared/amanda-logo';
+import HiveMarketLogo from '@/components/shared/hivemarket-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
 
 export default function SideNav() {
@@ -11,7 +11,7 @@ export default function SideNav() {
         href="/"
       >
         <div className="w-32 text-white md:w-40">
-          <AmandaLogo />
+          <HiveMarketLogo />
         </div>
       </Link>
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">

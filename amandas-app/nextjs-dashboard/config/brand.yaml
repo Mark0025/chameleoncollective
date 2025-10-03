@@ -1,19 +1,20 @@
 brand:
-  name: Amanda's Party & Event Rentals
-  slogan: Making Your Events Memorable
+  name: HiveMarketOK
+  slogan: Your Community Marketplace
   phone:
     primary: 405-314-5387
     secondary: ''
-  email: info@amandasrentals.com
+  email: info@hivemarketok.com
   address:
     street: 212 N Trade Center Terrace
     city: Mustang
-    state: ok
+    state: OK
     zip: '73064'
   hours:
     weekday: 9:00 AM - 6:00 PM
     saturday: 10:00 AM - 4:00 PM
     sunday: Closed
+  domain: hivemarketok.com
 
 colors:
   primary: '#235082'
@@ -24,6 +25,6 @@ colors:
   muted: '#F3F4F6'
 
 social:
-  facebook: amandasrentals
-  instagram: amandasrentals
-  twitter: amandasrentals
+  facebook: hivemarketok
+  instagram: hivemarketok
+  twitter: hivemarketok

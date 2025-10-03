@@ -3,7 +3,7 @@
 
 import { useAuth, useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
-import AmandaLogo from '@/components/shared/amanda-logo'
+import HiveMarketLogo from '@/components/shared/hivemarket-logo'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { getBrandConfig } from '@/app/lib/brand/config'
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12">
-              <AmandaLogo />
+              <HiveMarketLogo />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#2C363F]">

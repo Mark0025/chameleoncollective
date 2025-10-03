@@ -6,8 +6,8 @@ import { ClerkProvider } from '@clerk/nextjs'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-    title: 'CHAMELEON COLLECTIVE OK',
-    description: ' A flexible & stylish multi-use event space, offering boutique party supplies, rentals, and services. ',
+    title: 'HiveMarketOK - Your Community Marketplace',
+    description: 'Your trusted Oklahoma community marketplace for party supplies, event rentals, and services.',
 }
 
 export default function RootLayout({
